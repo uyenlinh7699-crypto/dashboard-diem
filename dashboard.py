@@ -22,6 +22,13 @@ def load_data():
     df_D12["Lớp"] = "D12"
     df_D13["Lớp"] = "D13"
     df_D14["Lớp"] = "D14"
+    
+    color_map = {
+    "D05": "#F5793A",
+    "D12": "#A95AA1",
+    "D13": "#85C0F9",
+    "D14": "#0F2080"
+}
 
     df_raw = pd.concat(
         [df_D05, df_D12, df_D13, df_D14],
@@ -80,23 +87,29 @@ min_score, max_score = st.sidebar.slider(
     "Khoảng điểm",
     0.0, 10.0, (0.0, 10.0)
 )
-
+selected_type_sidebar = st.sidebar.selectbox(
+    "Chọn xếp loại",
+    ["Tất cả", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+) 
 filtered_df = df[
     (df["Lớp"].isin(selected_class)) &
     (df["Điểm_tổng_hợp"] >= min_score) &
     (df["Điểm_tổng_hợp"] <= max_score)
 ]
-
+selected_type_sidebar = st.sidebar.selectbox(
+    "Chọn xếp loại",
+    ["Tất cả", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+)
 # ===== TITLE =====
 st.title("📊 PHÂN TÍCH ĐIỂM SINH VIÊN (D05, D12, D13, D14)")
 
 # ===== KPI =====
 st.subheader("📌 Tổng quan")
-
 col1, col2, col3, col4 = st.columns(4)
-
-col1.metric("Điểm TB (hệ 10)", round(filtered_df["Điểm_tổng_hợp"].mean(), 2))
-col2.metric("Điểm TB (hệ 4)", round(filtered_df["Điểm_4"].mean(), 2))
+mean10 = filtered_df["Điểm_tổng_hợp"].mean()
+mean4 = filtered_df["Điểm_4"].mean()
+col1.metric("Điểm TB (hệ 10)", round(mean10, 2) if not pd.isna(mean10) else 0)
+col2.metric("Điểm TB (hệ 4)", round(mean4, 2) if not pd.isna(mean4) else 0)
 col3.metric("Cao nhất", filtered_df["Điểm_tổng_hợp"].max())
 col4.metric("Tổng SV", df_raw.shape[0])
 
@@ -113,8 +126,13 @@ fig, ax = plt.subplots()
 for lop in selected_class:
     subset = filtered_df[filtered_df["Lớp"] == lop]
     if len(subset) > 0:
-        ax.hist(subset["Điểm_tổng_hợp"], bins=10, alpha=0.5, label=lop)
-
+        ax.hist(
+    subset["Điểm_tổng_hợp"],
+    bins=10,
+    alpha=0.6,
+    label=lop,
+    color=color_map.get(lop)
+)
 ax.legend()
 ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 st.pyplot(fig)
@@ -124,14 +142,25 @@ st.subheader("📦 Boxplot")
 
 fig2, ax2 = plt.subplots()
 data = [filtered_df[filtered_df["Lớp"] == lop]["Điểm_tổng_hợp"] for lop in selected_class if len(filtered_df[filtered_df["Lớp"] == lop]) > 0]
-ax2.boxplot(data, labels=selected_class)
+box = ax2.boxplot(data, labels=selected_class, patch_artist=True)
+for patch, lop in zip(box['boxes'], selected_class):
+    patch.set_facecolor(color_map.get(lop))
 st.pyplot(fig2)
 
 # ===== SCATTER =====
 st.subheader("🔍 Tương quan")
 
 fig3, ax3 = plt.subplots()
-sns.scatterplot(data=filtered_df, x="Thi_cuối_kì", y="Điểm_tổng_hợp", hue="Lớp", alpha=0.6, ax=ax3)
+sns.scatterplot(
+    data=filtered_df,
+    x="Thi_cuối_kì",
+    y="Điểm_tổng_hợp",
+    hue="Lớp",
+    palette=color_map,
+    alpha=0.6,
+    edgecolor="black",
+    ax=ax
+)
 sns.regplot(data=filtered_df, x="Thi_cuối_kì", y="Điểm_tổng_hợp", scatter=False, color="black", ax=ax3)
 ax3.grid(True, linestyle='--', alpha=0.3)
 st.pyplot(fig3)
@@ -168,6 +197,21 @@ with col1:
 with col2:
     st.write("Top 5 thấp nhất")
     st.dataframe(filtered_df.sort_values(by="Điểm_tổng_hợp", ascending=True).head(5))
+
+# ===== BẢNG CHI TIẾT =====
+st.subheader("📋 Danh sách sinh viên")
+
+selected_type = st.selectbox(
+    "Chọn xếp loại",
+    ["Tất cả", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+)
+
+if selected_type == "Tất cả":
+    display_df = filtered_df
+else:
+    display_df = filtered_df[filtered_df["Xếp loại"] == selected_type]
+
+st.dataframe(display_df)
 
 # ===== PDF =====
 st.subheader("📤 Xuất PDF")
