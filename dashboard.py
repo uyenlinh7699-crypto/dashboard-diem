@@ -122,12 +122,8 @@ if filtered_df.empty:
     st.warning("⚠️ Không tìm thấy sinh viên nào thỏa mãn điều kiện lọc. Vui lòng điều chỉnh lại Lớp, Khoảng điểm hoặc Xếp loại ở Sidebar.")
     st.stop() # Lệnh này sẽ dừng vẽ các biểu đồ bên dưới để tránh lỗi
 # ---------------------------------
-
 # ===== TITLE =====
-st.title("📊 DASHBOARD PHÂN TÍCH HỌC THUẬT (D05, D12, D13, D14)")
-
-# ===== TITLE =====
-st.title("📊 DASHBOARD PHÂN TÍCH HỌC THUẬT (D05, D12, D13, D14)")
+st.title("📊 DASHBOARD PHÂN TÍCH CHẤT LƯỢNG HỌC TẬP MÔN TOÁN CAO CẤP 1 (D05, D12, D13, D14)")
 
 # 🌟 TÍNH NĂNG 1: TẠO 3 TABS PHÂN TRANG (st.tabs)
 tab1, tab2, tab3 = st.tabs(["📊 Tổng quan lớp", "🔍 Phân tích chuyên sâu", "🧑‍🎓 Tra cứu cá nhân (Radar)"])
