@@ -338,17 +338,18 @@ with tab3:
 
     st.markdown("---")
     
-    # ===== BẢNG CHI TIẾT & XUẤT PDF =====
+ # ===== BẢNG CHI TIẾT & XUẤT PDF =====
     st.subheader("📋 Bảng điểm chi tiết & Xuất File")
     
     col_filter, col_pdf = st.columns([3, 1])
+    
     with col_filter:
         selected_type = st.selectbox("Lọc danh sách theo Xếp loại:", ["Tất cả", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"], key="filter_main")
         display_df = filtered_df if selected_type == "Tất cả" else filtered_df[filtered_df["Xếp loại"] == selected_type]
     
     st.dataframe(display_df[["MSSV", "Họ", "Tên", "Lớp", "Chuyên_cần", "Kiểm_tra_GK", "Thảo_luận_BTN_TT", "Thi_cuối_kì", "Điểm_tổng_hợp", "Xếp loại"]])
 
-   with col_pdf:
+    with col_pdf:
         st.write("") # Dóng hàng
         st.write("")
         
