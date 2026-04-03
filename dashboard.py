@@ -353,46 +353,111 @@ with tab3:
         st.write("") # Dóng hàng
         st.write("")
         
-        def create_pdf_buffer(df_export):
+        # Hàm xuất PDF nâng cấp Chuẩn Hành Chính
+        def create_formal_pdf(df_export, ma_hp, ngay_thi):
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+            from reportlab.lib import colors
+            import io
+            
             buffer = io.BytesIO()
             pdfmetrics.registerFont(TTFont('DejaVu', 'DejaVuSans.ttf'))
-            doc = SimpleDocTemplate(buffer)
+            
+            # Cấu hình lề cho văn bản hành chính
+            doc = SimpleDocTemplate(buffer, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
             styles = getSampleStyleSheet()
 
-            styles["Normal"].fontName = "DejaVu"
-            styles["Title"].fontName = "DejaVu"
-            styles["Heading2"].fontName = "DejaVu"
+            # Tạo các Style chữ riêng biệt
+            style_normal = ParagraphStyle(name='Normal_DJV', fontName='DejaVu', fontSize=11, leading=14)
+            style_center = ParagraphStyle(name='Center_DJV', fontName='DejaVu', fontSize=11, alignment=TA_CENTER, leading=14)
+            style_title = ParagraphStyle(name='Title_DJV', fontName='DejaVu', fontSize=16, alignment=TA_CENTER, spaceAfter=20, spaceBefore=20)
+            style_heading = ParagraphStyle(name='Heading_DJV', fontName='DejaVu', fontSize=12, spaceAfter=10, spaceBefore=15)
 
             content = []
             
-            # 1. Tiêu đề
-            content.append(Paragraph("BÁO CÁO TỔNG QUAN PHÂN TÍCH ĐIỂM", styles["Title"]))
+            # --- 1. QUỐC HIỆU & TIÊU NGỮ (Dạng Bảng 2 cột) ---
+            p_left = Paragraph("NGÂN HÀNG NHÀ NƯỚC VIỆT NAM<br/>TRƯỜNG ĐẠI HỌC NGÂN HÀNG TP.HCM<br/>-------", style_center)
+            p_right = Paragraph("CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br/>Độc lập - Tự do - Hạnh phúc<br/>-------", style_center)
+            
+            header_table = Table([[p_left, p_right]], colWidths=[260, 260])
+            header_table.setStyle(TableStyle([('VALIGN', (0,0), (-1,-1), 'TOP')]))
+            content.append(header_table)
+            content.append(Spacer(1, 10))
+
+            # --- 2. TÊN BÁO CÁO ---
+            content.append(Paragraph("BẢNG ĐIỂM HỌC PHẦN & ĐÁNH GIÁ TỔNG QUAN", style_title))
+
+            # --- 3. THÔNG TIN HỌC PHẦN ĐỘNG ---
+            info_data = [
+                [Paragraph("Hệ:", style_normal), Paragraph("Chính quy", style_normal), Paragraph("Năm học:", style_normal), Paragraph("2025-2026", style_normal)],
+                [Paragraph("Môn học:", style_normal), Paragraph("Toán cao cấp 1", style_normal), Paragraph("Học kỳ:", style_normal), Paragraph("HK01", style_normal)],
+                [Paragraph("Mã học phần:", style_normal), Paragraph(ma_hp, style_normal), Paragraph("Ngày, giờ thi:", style_normal), Paragraph(ngay_thi, style_normal)]
+            ]
+            info_table = Table(info_data, colWidths=[90, 170, 90, 170])
+            content.append(info_table)
             content.append(Spacer(1, 20))
 
-            # 2. Thống kê tổng quan
-            content.append(Paragraph("1. Tổng quan dữ liệu", styles["Heading2"]))
-            content.append(Spacer(1, 10))
+            # --- 4. THỐNG KÊ XẾP LOẠI & NHẬN XÉT ---
+            content.append(Paragraph("I. THỐNG KÊ & ĐÁNH GIÁ", style_heading))
             
-            mean10 = round(df_export["Điểm_tổng_hợp"].mean(), 2) if not pd.isna(df_export["Điểm_tổng_hợp"].mean()) else 0
-            mean4 = round(df_export["Điểm_4"].mean(), 2) if not pd.isna(df_export["Điểm_4"].mean()) else 0
-            max_score = df_export["Điểm_tổng_hợp"].max() if not pd.isna(df_export["Điểm_tổng_hợp"].max()) else 0
-            
-            content.append(Paragraph(f"- Tổng số sinh viên: {df_export.shape[0]}", styles["Normal"]))
-            content.append(Paragraph(f"- Điểm trung bình (Hệ 10): {mean10} | (Hệ 4): {mean4}", styles["Normal"]))
-            content.append(Paragraph(f"- Điểm cao nhất: {max_score}", styles["Normal"]))
-            content.append(Spacer(1, 15))
+            total_sv = df_export.shape[0]
+            if total_sv > 0:
+                mean10 = round(df_export["Điểm_tổng_hợp"].mean(), 2)
+                xep_loai_counts = df_export["Xếp loại"].value_counts()
+                
+                # Tính tỷ lệ đạt (Từ Trung bình trở lên)
+                so_luong_yeu = xep_loai_counts.get("Yếu", 0)
+                ty_le_dat = round(((total_sv - so_luong_yeu) / total_sv) * 100, 1)
+                
+                content.append(Paragraph(f"- Tổng số sinh viên: {total_sv}", style_normal))
+                content.append(Paragraph(f"- Điểm trung bình chung (Hệ 10): {mean10}", style_normal))
+                content.append(Spacer(1, 5))
+                
+                # Chi tiết xếp loại
+                order = ["Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+                for xl in order:
+                    count = xep_loai_counts.get(xl, 0)
+                    percent = round((count / total_sv) * 100, 1)
+                    content.append(Paragraph(f"  + {xl}: {count} sinh viên ({percent}%)", style_normal))
+                
+                content.append(Spacer(1, 10))
+                # AI Nhận xét tự động dựa trên số liệu
+                content.append(Paragraph("Nhận xét chuyên môn:", style_heading))
+                if ty_le_dat >= 90:
+                    nhan_xet = f"Chất lượng học tập RẤT TỐT. Tỷ lệ sinh viên qua môn đạt {ty_le_dat}%. Đa số sinh viên nắm vững kiến thức và hoàn thành tốt bài thi."
+                elif ty_le_dat >= 70:
+                    nhan_xet = f"Chất lượng học tập KHÁ. Tỷ lệ qua môn đạt {ty_le_dat}%. Tuy nhiên vẫn còn một bộ phận sinh viên cần cải thiện phương pháp học tập."
+                else:
+                    nhan_xet = f"CẦN LƯU Ý: Tỷ lệ qua môn chỉ đạt {ty_le_dat}%. Cần rà soát lại mức độ tiếp thu của sinh viên và có biện pháp phụ đạo ở học kỳ sau."
+                content.append(Paragraph(nhan_xet, style_normal))
 
-            # 3. Thống kê xếp loại
-            content.append(Paragraph("2. Thống kê Xếp loại", styles["Heading2"]))
-            content.append(Spacer(1, 10))
+            content.append(Spacer(1, 20))
+
+            # --- 5. DANH SÁCH SINH VIÊN (Bảng Grid) ---
+            content.append(Paragraph("II. DANH SÁCH ĐIỂM CHI TIẾT", style_heading))
             
-            xep_loai_counts = df_export["Xếp loại"].value_counts()
-            order = ["Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+            # Tiêu đề cột
+            table_data = [["STT", "MSSV", "Họ và Tên", "Lớp", "Điểm TK", "Xếp loại"]]
             
-            for xl in order:
-                count = xep_loai_counts.get(xl, 0)
-                percent = round((count / df_export.shape[0]) * 100, 1) if df_export.shape[0] > 0 else 0
-                content.append(Paragraph(f"- {xl}: {count} sinh viên ({percent}%)", styles["Normal"]))
+            # Rút trích dữ liệu sinh viên
+            for index, row in enumerate(df_export.itertuples(), 1):
+                hoten = f"{row.Họ} {row.Tên}"
+                table_data.append([str(index), str(row.MSSV), hoten, str(row.Lớp), str(row.Điểm_tổng_hợp), str(getattr(row, 'Xếp loại'))])
+
+            # Cấu hình vẽ bảng
+            student_table = Table(table_data, colWidths=[40, 80, 150, 60, 60, 130], repeatRows=1) # repeatRows giúp lặp lại tiêu đề khi sang trang mới
+            student_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey), # Màu nền xám cho dòng tiêu đề
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'), # Căn giữa tất cả
+                ('ALIGN', (2, 1), (2, -1), 'LEFT'), # Riêng cột Họ Tên thì căn trái
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.black), # Vẽ lưới đen
+                ('FONTNAME', (0, 0), (-1, -1), 'DejaVu'), # Dùng font tiếng Việt
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                ('TOPPADDING', (0, 0), (-1, -1), 5),
+            ]))
+            content.append(student_table)
 
             # Đóng gói PDF
             doc.build(content)
@@ -400,12 +465,13 @@ with tab3:
             return buffer
 
         def show_success_toast():
-            st.toast("✅ Đã tải Báo cáo PDF thành công!", icon="🎉")
+            st.toast("✅ Đã xuất Bảng Điểm Chuẩn Hành Chính thành công!", icon="🎓")
 
+        # Truyền ma_hp_hien_thi và ngay_thi_hien_thi từ logic biến ở bên trên vào hàm
         st.download_button(
-            label="📥 Tải PDF Báo Cáo",
-            data=create_pdf_buffer(filtered_df),
-            file_name="Bao_Cao_TCC1.pdf",
+            label="📥 Tải PDF Bảng Điểm (Chuẩn Hành Chính)",
+            data=create_formal_pdf(filtered_df, ma_hp_hien_thi, ngay_thi_hien_thi),
+            file_name=f"Bang_Diem_{ma_hp_hien_thi}.pdf",
             mime="application/pdf",
             on_click=show_success_toast,
             use_container_width=True
