@@ -108,7 +108,7 @@ mean4 = filtered_df["Điểm_4"].mean()
 col1.metric("Điểm TB (hệ 10)", round(mean10, 2) if not pd.isna(mean10) else 0)
 col2.metric("Điểm TB (hệ 4)", round(mean4, 2) if not pd.isna(mean4) else 0)
 col3.metric("Cao nhất", filtered_df["Điểm_tổng_hợp"].max())
-col4.metric("Tổng SV", df_raw.shape[0])
+col4.metric("Tổng SV", filtered_df.shape[0])
 
 # ===== RANKING =====
 st.subheader("🏆 Xếp hạng lớp")
@@ -139,7 +139,15 @@ st.subheader("📦 Boxplot")
 
 fig2, ax2 = plt.subplots()
 data = [filtered_df[filtered_df["Lớp"] == lop]["Điểm_tổng_hợp"] for lop in selected_class if len(filtered_df[filtered_df["Lớp"] == lop]) > 0]
-box = ax2.boxplot(data, labels=selected_class, patch_artist=True)
+box = ax2.boxplot(
+    data,
+    labels=selected_class,
+    patch_artist=True,
+    medianprops=dict(color='black', linewidth=2),
+    boxprops=dict(linewidth=1.5),
+    whiskerprops=dict(linewidth=1.5),
+    capprops=dict(linewidth=1.5)
+)
 for patch, lop in zip(box['boxes'], selected_class):
     patch.set_facecolor(color_map.get(lop))
 st.pyplot(fig2)
