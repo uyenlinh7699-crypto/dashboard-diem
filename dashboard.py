@@ -1,4 +1,5 @@
 import plotly.express as px
+import io
 import plotly.graph_objects as go
 import streamlit as st
 import pandas as pd
@@ -347,21 +348,69 @@ with tab3:
     
     st.dataframe(display_df[["MSSV", "Họ", "Tên", "Lớp", "Chuyên_cần", "Kiểm_tra_GK", "Thảo_luận_BTN_TT", "Thi_cuối_kì", "Điểm_tổng_hợp", "Xếp loại"]])
 
-    with col_pdf:
+   with col_pdf:
         st.write("") # Dóng hàng
         st.write("")
-        def create_pdf():
+        
+        def create_pdf_buffer(df_export):
+            # Tạo bộ nhớ đệm
+            buffer = io.BytesIO()
             pdfmetrics.registerFont(TTFont('DejaVu', 'DejaVuSans.ttf'))
-            doc = SimpleDocTemplate("report.pdf")
+            doc = SimpleDocTemplate(buffer)
             styles = getSampleStyleSheet()
+
             styles["Normal"].fontName = "DejaVu"
             styles["Title"].fontName = "DejaVu"
-            content = [Paragraph("BÁO CÁO PHÂN TÍCH ĐIỂM", styles["Title"]), Spacer(1, 20)]
-            mean_val = round(filtered_df["Điểm_tổng_hợp"].mean(), 2)
-            content.append(Paragraph(f"Điểm trung bình: {mean_val}", styles["Normal"]))
-            content.append(Paragraph(f"Tổng sinh viên: {df_raw.shape[0]}", styles["Normal"]))
-            doc.build(content)
+            styles["Heading2"].fontName = "DejaVu"
 
-        if st.button("📥 Tải PDF Báo Cáo", use_container_width=True):
-            create_pdf()
-            st.success("Đã tạo report.pdf thành công!")
+            content = []
+            
+            # 1. Tiêu đề
+            content.append(Paragraph("BÁO CÁO TỔNG QUAN PHÂN TÍCH ĐIỂM", styles["Title"]))
+            content.append(Spacer(1, 20))
+
+            # 2. Thống kê tổng quan
+            content.append(Paragraph("1. Tổng quan dữ liệu", styles["Heading2"]))
+            content.append(Spacer(1, 10))
+            
+            mean10 = round(df_export["Điểm_tổng_hợp"].mean(), 2) if not pd.isna(df_export["Điểm_tổng_hợp"].mean()) else 0
+            mean4 = round(df_export["Điểm_4"].mean(), 2) if not pd.isna(df_export["Điểm_4"].mean()) else 0
+            max_score = df_export["Điểm_tổng_hợp"].max() if not pd.isna(df_export["Điểm_tổng_hợp"].max()) else 0
+            
+            content.append(Paragraph(f"- Tổng số sinh viên: <b>{df_export.shape[0]}</b>", styles["Normal"]))
+            content.append(Paragraph(f"- Điểm trung bình (Hệ 10): <b>{mean10}</b>", styles["Normal"]))
+            content.append(Paragraph(f"- Điểm trung bình (Hệ 4): <b>{mean4}</b>", styles["Normal"]))
+            content.append(Paragraph(f"- Điểm cao nhất: <b>{max_score}</b>", styles["Normal"]))
+            content.append(Spacer(1, 15))
+
+            # 3. Thống kê xếp loại
+            content.append(Paragraph("2. Thống kê Xếp loại", styles["Heading2"]))
+            content.append(Spacer(1, 10))
+            
+            xep_loai_counts = df_export["Xếp loại"].value_counts()
+            order = ["Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+            
+            for xl in order:
+                count = xep_loai_counts.get(xl, 0)
+                percent = round((count / df_export.shape[0]) * 100, 1) if df_export.shape[0] > 0 else 0
+                content.append(Paragraph(f"- {xl}: <b>{count}</b> sinh viên ({percent}%)", styles["Normal"]))
+
+            # Đóng gói PDF
+            doc.build(content)
+            buffer.seek(0)
+            return buffer
+
+        # Hàm hiển thị thông báo góc màn hình
+        def show_success_toast():
+            st.toast("✅ Đã tải Báo cáo PDF thành công!", icon="🎉")
+
+        # Nút Download chuẩn của Streamlit
+        pdf_file = create_pdf_buffer(filtered_df)
+        st.download_button(
+            label="📥 Tải PDF Báo Cáo",
+            data=pdf_file,
+            file_name="Bao_Cao_Toan_Cao_Cap_1.pdf",
+            mime="application/pdf",
+            on_click=show_success_toast,
+            use_container_width=True
+        )
