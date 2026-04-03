@@ -34,7 +34,7 @@ def load_data():
         ignore_index=True
     )
 
-    df = df_raw.dropna(subset=["Thi_cuối_kì", "Điểm_tổng_hợp"])
+   df = df_raw.copy()
 
     return df_raw, df
 
@@ -107,7 +107,8 @@ mean10 = filtered_df["Điểm_tổng_hợp"].mean()
 mean4 = filtered_df["Điểm_4"].mean()
 col1.metric("Điểm TB (hệ 10)", round(mean10, 2) if not pd.isna(mean10) else 0)
 col2.metric("Điểm TB (hệ 4)", round(mean4, 2) if not pd.isna(mean4) else 0)
-col3.metric("Cao nhất", filtered_df["Điểm_tổng_hợp"].max())
+max_score = filtered_df["Điểm_tổng_hợp"].max()
+col3.metric("Cao nhất", max_score if not pd.isna(max_score) else 0)
 col4.metric("Tổng SV", filtered_df.shape[0])
 
 # ===== RANKING =====
@@ -122,14 +123,14 @@ st.subheader("📈 Phân bố điểm")
 fig, ax = plt.subplots()
 for lop in selected_class:
     subset = filtered_df[filtered_df["Lớp"] == lop]
-if len(subset) > 0:
-    ax.hist(
-        subset["Điểm_tổng_hợp"],
-        bins=10,
-        alpha=0.6,
-        label=lop,
-        color=color_map.get(lop)
-    )
+    if len(subset) > 0:
+        ax.hist(
+            subset["Điểm_tổng_hợp"],
+            bins=10,
+            alpha=0.6,
+            label=lop,
+            color=color_map.get(lop)
+        )
 ax.legend()
 ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 st.pyplot(fig)
@@ -138,10 +139,11 @@ st.pyplot(fig)
 st.subheader("📦 Boxplot")
 
 fig2, ax2 = plt.subplots()
-data = [filtered_df[filtered_df["Lớp"] == lop]["Điểm_tổng_hợp"] for lop in selected_class if len(filtered_df[filtered_df["Lớp"] == lop]) > 0]
+valid_classes = [lop for lop in selected_class if len(filtered_df[filtered_df["Lớp"] == lop]) > 0]
+data = [filtered_df[filtered_df["Lớp"] == lop]["Điểm_tổng_hợp"] for lop in valid_classes]
 box = ax2.boxplot(
     data,
-    labels=selected_class,
+    labels=valid_classes,
     patch_artist=True,
     medianprops=dict(color='black', linewidth=2),
     boxprops=dict(linewidth=1.5),
@@ -156,8 +158,9 @@ st.pyplot(fig2)
 st.subheader("🔍 Tương quan")
 
 fig3, ax3 = plt.subplots()
+scatter_df = filtered_df.dropna(subset=["Thi_cuối_kì", "Điểm_tổng_hợp"])
 sns.scatterplot(
-    data=filtered_df,
+    data=scatter_df,
     x="Thi_cuối_kì",
     y="Điểm_tổng_hợp",
     hue="Lớp",
@@ -166,20 +169,23 @@ sns.scatterplot(
     edgecolor="black",
     ax=ax3
 )
-sns.regplot(data=filtered_df, x="Thi_cuối_kì", y="Điểm_tổng_hợp", scatter=False, color="black", ax=ax3)
+sns.regplot(
+    data=scatter_df, x="Thi_cuối_kì", y="Điểm_tổng_hợp", scatter=False, color="black", ax=ax3)
 ax3.grid(True, linestyle='--', alpha=0.3)
 st.pyplot(fig3)
 
 # ===== HEATMAP =====
 st.subheader("📊 Heatmap")
 
-corr = filtered_df[[
+corr_df = filtered_df[[
     "Chuyên_cần",
     "Kiểm_tra_GK",
     "Thảo_luận_BTN_TT",
     "Thi_cuối_kì",
     "Điểm_tổng_hợp"
-]].corr()
+]].dropna()
+
+corr = corr_df.corr()
 
 fig4, ax4 = plt.subplots()
 sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax4)
