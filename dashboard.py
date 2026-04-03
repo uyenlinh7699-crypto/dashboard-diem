@@ -105,8 +105,8 @@ st.subheader("📌 Tổng quan")
 col1, col2, col3, col4 = st.columns(4)
 mean10 = filtered_df["Điểm_tổng_hợp"].mean()
 mean4 = filtered_df["Điểm_4"].mean()
-col1.metric("Điểm TB (hệ 10)", round(mean10, 2) if not pd.isna(mean10) else 0)
-col2.metric("Điểm TB (hệ 4)", round(mean4, 2) if not pd.isna(mean4) else 0)
+col1.metric("Điểm TB (hệ 10)", round(mean10, 1) if not pd.isna(mean10) else 0)
+col2.metric("Điểm TB (hệ 4)", round(mean4, 1) if not pd.isna(mean4) else 0)
 max_score = filtered_df["Điểm_tổng_hợp"].max()
 col3.metric("Cao nhất", max_score if not pd.isna(max_score) else 0)
 col4.metric("Tổng SV", filtered_df.shape[0])
@@ -131,8 +131,19 @@ for lop in selected_class:
             label=lop,
             color=color_map.get(lop)
         )
-ax.legend()
+ax.legend(title="Lớp", frameon=True, edgecolor='black')
 ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+# --- Phần Thêm mới để làm đẹp ---
+ax.set_title("Phân bố điểm tổng hợp theo lớp", fontsize=14, fontweight='bold', pad=15)
+ax.set_xlabel("Điểm tổng hợp", fontweight='bold')
+ax.set_ylabel("Số lượng sinh viên", fontweight='bold')
+ax.grid(True, linestyle='--', alpha=0.5) # Thêm lưới dễ nhìn
+for spine in ax.spines.values(): # Thêm đường viền đen xung quanh
+    spine.set_edgecolor('black')
+    spine.set_linewidth(1)
+# ---------------------------------
+
 st.pyplot(fig)
 
 # ===== BOXPLOT =====
@@ -152,6 +163,17 @@ box = ax2.boxplot(
 )
 for patch, lop in zip(box['boxes'], selected_class):
     patch.set_facecolor(color_map.get(lop))
+
+# --- Phần Thêm mới để làm đẹp ---
+ax2.set_title("Biểu đồ Boxplot: Khoảng phân tán điểm", fontsize=14, fontweight='bold', pad=15)
+ax2.set_xlabel("Lớp học", fontweight='bold')
+ax2.set_ylabel("Điểm tổng hợp", fontweight='bold')
+ax2.grid(True, linestyle='--', alpha=0.5, axis='y') # Chỉ bật lưới ngang cho Boxplot
+for spine in ax2.spines.values():
+    spine.set_edgecolor('black')
+    spine.set_linewidth(1)
+# ---------------------------------
+
 st.pyplot(fig2)
 
 # ===== SCATTER =====
@@ -171,9 +193,19 @@ sns.scatterplot(
 )
 sns.regplot(
     data=scatter_df, x="Thi_cuối_kì", y="Điểm_tổng_hợp", scatter=False, color="black", ax=ax3)
-ax3.grid(True, linestyle='--', alpha=0.3)
-st.pyplot(fig3)
 
+# --- Phần Thêm mới để làm đẹp ---
+ax3.set_title("Tương quan giữa Điểm thi cuối kì và Điểm tổng hợp", fontsize=14, fontweight='bold', pad=15)
+ax3.set_xlabel("Điểm thi cuối kì", fontweight='bold')
+ax3.set_ylabel("Điểm tổng hợp", fontweight='bold')
+ax3.legend(title="Lớp", frameon=True, edgecolor='black')
+ax3.grid(True, linestyle='--', alpha=0.5)
+for spine in ax3.spines.values():
+    spine.set_edgecolor('black')
+    spine.set_linewidth(1)
+# ---------------------------------
+
+st.pyplot(fig3)
 # ===== HEATMAP =====
 st.subheader("📊 Heatmap")
 
@@ -188,13 +220,40 @@ corr_df = filtered_df[[
 corr = corr_df.corr()
 
 fig4, ax4 = plt.subplots()
-sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax4)
+sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax4, linewidths=0.5, linecolor='black') # Thêm viền cho các ô
+
+# --- Phần Thêm mới để làm đẹp ---
+ax4.set_title("Ma trận tương quan giữa các thành phần điểm", fontsize=14, fontweight='bold', pad=15)
+plt.xticks(rotation=45, ha='right') # Xoay nhãn trục X để không bị đè lên nhau
+# ---------------------------------
+
 st.pyplot(fig4)
 
 # ===== PHÂN LOẠI =====
 st.subheader("📊 Phân loại")
 
-st.bar_chart(pd.crosstab(filtered_df["Lớp"], filtered_df["Xếp loại"]).fillna(0))
+fig5, ax5 = plt.subplots(figsize=(8, 5))
+crosstab_df = pd.crosstab(filtered_df["Lớp"], filtered_df["Xếp loại"]).fillna(0)
+
+# Sắp xếp lại thứ tự xếp loại cho logic từ cao xuống thấp (nếu cần)
+order = ["Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+crosstab_df = crosstab_df.reindex(columns=[x for x in order if x in crosstab_df.columns])
+
+crosstab_df.plot(kind='bar', ax=ax5, colormap='viridis', edgecolor='black') # Vẽ bar chart với màu đẹp và viền đen
+
+# --- Phần Thêm mới để làm đẹp ---
+ax5.set_title("Thống kê Xếp loại sinh viên theo lớp", fontsize=14, fontweight='bold', pad=15)
+ax5.set_xlabel("Lớp học", fontweight='bold')
+ax5.set_ylabel("Số lượng sinh viên", fontweight='bold')
+ax5.legend(title="Xếp loại", frameon=True, edgecolor='black')
+ax5.grid(True, linestyle='--', alpha=0.5, axis='y')
+plt.xticks(rotation=0) # Để tên lớp nằm ngang cho dễ đọc
+for spine in ax5.spines.values():
+    spine.set_edgecolor('black')
+    spine.set_linewidth(1)
+# ---------------------------------
+
+st.pyplot(fig5)
 
 # ===== TOP =====
 st.subheader("🏆 Top sinh viên")
