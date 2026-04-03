@@ -19,8 +19,8 @@ def load_data():
     df_D14["Lớp"] = "D14"
 
     df = pd.concat([df_D05, df_D12, df_D13, df_D14], ignore_index=True)
-    df = df.dropna(subset=["Thi_cuối_kì", "Điểm_tổng_hợp"])
-
+    # Data dùng để phân tích
+    df = df_raw.dropna(subset=["Thi_cuối_kì", "Điểm_tổng_hợp"])
     return df
 df = load_data()
 
@@ -61,15 +61,32 @@ filtered_df = df[
 st.title("📊 PHÂN TÍCH ĐIỂM SINH VIÊN (D05, D12, D13, D14)")
 
 # ===== KPI =====
-st.subheader("📌 Tổng quan")
+st.subheader("📌 Tổng quan dữ liệu")
 
+# ===== TÍNH TOÁN =====
+total_students = df_raw.shape[0]   # Tổng thật (không bị mất do lọc)
+mean_score = filtered_df["Điểm_tổng_hợp"].mean()
+max_score = filtered_df["Điểm_tổng_hợp"].max()
+min_score = filtered_df["Điểm_tổng_hợp"].min()
+median_score = filtered_df["Điểm_tổng_hợp"].median()
+std_score = filtered_df["Điểm_tổng_hợp"].std()
+
+# ===== HIỂN THỊ =====
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric("Điểm TB", round(filtered_df["Điểm_tổng_hợp"].mean(), 2))
-col2.metric("Cao nhất", filtered_df["Điểm_tổng_hợp"].max())
-col3.metric("Thấp nhất", filtered_df["Điểm_tổng_hợp"].min())
-col4.metric("Số SV", len(filtered_df))
+col1.metric(" Điểm TB (Tổng hợp)", round(mean_score, 2))
+col2.metric(" Cao nhất", max_score)
+col3.metric(" Thấp nhất", min_score)
+col4.metric(" Tổng SV", total_students)
 
+# ===== INSIGHT =====
+col5, col6 = st.columns(2)
+
+col5.metric("📊 Trung vị", round(median_score, 2))
+col6.metric("📈 Độ lệch chuẩn", round(std_score, 2))
+
+# ===== GIẢI THÍCH =====
+missing_rate = 100 * (1 - len(filtered_df) / len(df_raw))
 # ===== RANKING LỚP =====
 st.subheader("🏆 Xếp hạng lớp theo điểm trung bình")
 
