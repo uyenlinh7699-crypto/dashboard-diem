@@ -18,7 +18,7 @@ def load_data():
     df_D13["Lớp"] = "D13"
     df_D14["Lớp"] = "D14"
 
-    df = pd.concat([df_D05, df_D12, df_D13, df_D14])
+    df = pd.concat([df_D05, df_D12, df_D13, df_D14], ignore_index=True)
     df = df.dropna(subset=["Thi_cuối_kì", "Điểm_tổng_hợp"])
 
     return df
