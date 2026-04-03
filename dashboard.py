@@ -476,11 +476,11 @@ with tab3:
             return buffer
 
         def show_success_toast():
-            st.toast("✅ Đã xuất Bảng Điểm Chuẩn Hành Chính thành công!", icon="🎓")
+            st.toast("✅ Đã xuất Bảng Điểm thành công!", icon="🎓")
 
         # Truyền ma_hp_hien_thi và ngay_thi_hien_thi từ logic biến ở bên trên vào hàm
         st.download_button(
-            label="📥 Tải PDF Bảng Điểm (Chuẩn Hành Chính)",
+            label="📥 Tải PDF Bảng Điểm ",
             data=create_formal_pdf(filtered_df, ma_hp_hien_thi, ngay_thi_hien_thi),
             file_name=f"Bang_Diem_{ma_hp_hien_thi}.pdf",
             mime="application/pdf",
