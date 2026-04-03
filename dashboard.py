@@ -8,6 +8,13 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
+    color_map = {
+    "D05": "#F5793A",
+    "D12": "#A95AA1",
+    "D13": "#85C0F9",
+    "D14": "#0F2080"
+} 
+
 st.set_page_config(layout="wide")
 
 # ===== LOAD DATA =====
@@ -23,13 +30,6 @@ def load_data():
     df_D13["Lớp"] = "D13"
     df_D14["Lớp"] = "D14"
     
-    color_map = {
-    "D05": "#F5793A",
-    "D12": "#A95AA1",
-    "D13": "#85C0F9",
-    "D14": "#0F2080"
-}
-
     df_raw = pd.concat(
         [df_D05, df_D12, df_D13, df_D14],
         ignore_index=True
@@ -96,10 +96,8 @@ filtered_df = df[
     (df["Điểm_tổng_hợp"] >= min_score) &
     (df["Điểm_tổng_hợp"] <= max_score)
 ]
-selected_type_sidebar = st.sidebar.selectbox(
-    "Chọn xếp loại",
-    ["Tất cả", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
-)
+ if selected_type_sidebar != "Tất cả":
+    filtered_df = filtered_df[filtered_df["Xếp loại"] == selected_type_sidebar]
 # ===== TITLE =====
 st.title("📊 PHÂN TÍCH ĐIỂM SINH VIÊN (D05, D12, D13, D14)")
 
@@ -126,7 +124,7 @@ fig, ax = plt.subplots()
 for lop in selected_class:
     subset = filtered_df[filtered_df["Lớp"] == lop]
     if len(subset) > 0:
-        ax.hist(
+       ax.hist(
     subset["Điểm_tổng_hợp"],
     bins=10,
     alpha=0.6,
@@ -159,7 +157,7 @@ sns.scatterplot(
     palette=color_map,
     alpha=0.6,
     edgecolor="black",
-    ax=ax
+    ax=ax3
 )
 sns.regplot(data=filtered_df, x="Thi_cuối_kì", y="Điểm_tổng_hợp", scatter=False, color="black", ax=ax3)
 ax3.grid(True, linestyle='--', alpha=0.3)
@@ -203,7 +201,8 @@ st.subheader("📋 Danh sách sinh viên")
 
 selected_type = st.selectbox(
     "Chọn xếp loại",
-    ["Tất cả", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+    ["Tất cả", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"],
+    key="filter_main"
 )
 
 if selected_type == "Tất cả":
