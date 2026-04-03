@@ -113,9 +113,24 @@ col4.metric("Tổng SV", filtered_df.shape[0])
 
 # ===== RANKING =====
 st.subheader("🏆 Xếp hạng lớp")
-
 avg_class = filtered_df.groupby("Lớp")["Điểm_tổng_hợp"].mean().sort_values(ascending=False)
-st.bar_chart(avg_class)
+
+fig_rank, ax_rank = plt.subplots(figsize=(8, 4))
+# Lấy màu tương ứng với từng lớp để vẽ
+colors = [color_map.get(lop, "#888888") for lop in avg_class.index]
+
+avg_class.plot(
+    kind='bar', 
+    ax=ax_rank, 
+    color=colors, 
+    edgecolor='black', # Viền đen cho cột
+    linewidth=1.2
+)
+
+ax_rank.set_ylabel("Điểm TB")
+plt.xticks(rotation=0) # Cho tên lớp nằm ngang
+ax_rank.grid(True, linestyle='--', alpha=0.5, axis='y')
+st.pyplot(fig_rank)
 
 # ===== HISTOGRAM =====
 st.subheader("📈 Phân bố điểm")
@@ -124,12 +139,14 @@ fig, ax = plt.subplots()
 for lop in selected_class:
     subset = filtered_df[filtered_df["Lớp"] == lop]
     if len(subset) > 0:
-        ax.hist(
+ax.hist(
             subset["Điểm_tổng_hợp"],
             bins=10,
             alpha=0.6,
             label=lop,
-            color=color_map.get(lop)
+            color=color_map.get(lop),
+            edgecolor='black', # Thêm viền đen cho các cột
+            linewidth=1.2      # Độ dày viền
         )
 ax.legend(title="Lớp", frameon=True, edgecolor='black')
 ax.yaxis.set_major_locator(MaxNLocator(integer=True))
@@ -232,8 +249,28 @@ st.pyplot(fig4)
 # ===== PHÂN LOẠI =====
 st.subheader("📊 Phân loại")
 
-fig5, ax5 = plt.subplots(figsize=(8, 5))
+fig_class, ax_class = plt.subplots(figsize=(8, 5))
 crosstab_df = pd.crosstab(filtered_df["Lớp"], filtered_df["Xếp loại"]).fillna(0)
+
+# Sắp xếp lại thứ tự cột cho hợp lý
+order = ["Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+crosstab_df = crosstab_df.reindex(columns=[x for x in order if x in crosstab_df.columns])
+
+# Vẽ biểu đồ với viền đen
+crosstab_df.plot(
+    kind='bar', 
+    ax=ax_class, 
+    colormap='Set2',   # Dùng bảng màu Set2 cho đẹp, hoặc giữ nguyên
+    edgecolor='black', # VIỀN ĐEN Ở ĐÂY
+    linewidth=1.2
+)
+
+ax_class.set_xlabel("Lớp học")
+ax_class.set_ylabel("Số lượng sinh viên")
+plt.xticks(rotation=0)
+ax_class.legend(title="Xếp loại")
+ax_class.grid(True, linestyle='--', alpha=0.4, axis='y')
+st.pyplot(fig_class)
 
 # Sắp xếp lại thứ tự xếp loại cho logic từ cao xuống thấp (nếu cần)
 order = ["Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
