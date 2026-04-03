@@ -271,7 +271,7 @@ with tab2:
 
 
 # ==========================================
-# TAB 3: TRA CỨU CÁ NHÂN (Vũ khí bí mật)
+# TAB 3: TRA CỨU CÁ NHÂN  
 # ==========================================
 with tab3:
     st.subheader("🎯 Tra cứu & Đánh giá năng lực cá nhân (Radar Chart)")
@@ -353,10 +353,7 @@ with tab3:
         st.write("") # Dóng hàng
         st.write("")
         
-        # Hàm mới: Truyền thêm các biểu đồ (f_rank, f_class) vào hàm
-        def create_pdf_with_charts(df_export, f_rank, f_class):
-            from reportlab.platypus import Image # Nhập thêm tính năng chèn ảnh
-            
+        def create_pdf_buffer(df_export):
             buffer = io.BytesIO()
             pdfmetrics.registerFont(TTFont('DejaVu', 'DejaVuSans.ttf'))
             doc = SimpleDocTemplate(buffer)
@@ -368,11 +365,12 @@ with tab3:
 
             content = []
             
-            # --- 1. TIÊU ĐỀ & THỐNG KÊ (Giống cũ) ---
+            # 1. Tiêu đề
             content.append(Paragraph("BÁO CÁO TỔNG QUAN PHÂN TÍCH ĐIỂM", styles["Title"]))
-            content.append(Spacer(1, 15))
+            content.append(Spacer(1, 20))
 
-            content.append(Paragraph("1. Tổng quan số liệu", styles["Heading2"]))
+            # 2. Thống kê tổng quan
+            content.append(Paragraph("1. Tổng quan dữ liệu", styles["Heading2"]))
             content.append(Spacer(1, 10))
             
             mean10 = round(df_export["Điểm_tổng_hợp"].mean(), 2) if not pd.isna(df_export["Điểm_tổng_hợp"].mean()) else 0
@@ -384,29 +382,17 @@ with tab3:
             content.append(Paragraph(f"- Điểm cao nhất: {max_score}", styles["Normal"]))
             content.append(Spacer(1, 15))
 
-            # --- 2. CHÈN HÌNH ẢNH BIỂU ĐỒ (Phần mới ăn tiền) ---
-            content.append(Paragraph("2. Biểu đồ Phân tích", styles["Heading2"]))
+            # 3. Thống kê xếp loại
+            content.append(Paragraph("2. Thống kê Xếp loại", styles["Heading2"]))
             content.append(Spacer(1, 10))
             
-            try:
-                # Chụp biểu đồ Xếp hạng (f_rank) thành ảnh PNG
-                content.append(Paragraph("Biểu đồ: Xếp hạng Điểm trung bình theo lớp", styles["Normal"]))
-                content.append(Spacer(1, 5))
-                img_rank_bytes = f_rank.to_image(format="png", engine="kaleido", width=700, height=400)
-                img_rank = Image(io.BytesIO(img_rank_bytes), width=400, height=228) # Thu nhỏ lại cho vừa giấy A4
-                content.append(img_rank)
-                content.append(Spacer(1, 15))
-
-                # Chụp biểu đồ Phân loại (f_class) thành ảnh PNG
-                content.append(Paragraph("Biểu đồ: Thống kê Xếp loại sinh viên", styles["Normal"]))
-                content.append(Spacer(1, 5))
-                img_class_bytes = f_class.to_image(format="png", engine="kaleido", width=700, height=400)
-                img_class = Image(io.BytesIO(img_class_bytes), width=400, height=228)
-                content.append(img_class)
-                
-            except Exception as e:
-                # Nếu hệ thống chưa kịp cài kaleido, nó sẽ hiện dòng chữ này thay vì làm sập trang web
-                content.append(Paragraph("(Đang xử lý thư viện chụp ảnh đồ họa... Vui lòng thử lại sau ít phút)", styles["Normal"]))
+            xep_loai_counts = df_export["Xếp loại"].value_counts()
+            order = ["Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+            
+            for xl in order:
+                count = xep_loai_counts.get(xl, 0)
+                percent = round((count / df_export.shape[0]) * 100, 1) if df_export.shape[0] > 0 else 0
+                content.append(Paragraph(f"- {xl}: {count} sinh viên ({percent}%)", styles["Normal"]))
 
             # Đóng gói PDF
             doc.build(content)
@@ -414,13 +400,12 @@ with tab3:
             return buffer
 
         def show_success_toast():
-            st.toast("✅ Đã tải Báo cáo PDF (Kèm Biểu Đồ) thành công!", icon="🎉")
+            st.toast("✅ Đã tải Báo cáo PDF thành công!", icon="🎉")
 
-        # Nút Download truyền trực tiếp các biến fig_rank, fig_class từ bên trên xuống
         st.download_button(
-            label="📥 Tải PDF Báo Cáo (Kèm Biểu Đồ)",
-            data=create_pdf_with_charts(filtered_df, fig_rank, fig_class),
-            file_name="Bao_Cao_TCC1_Bieu_Do.pdf",
+            label="📥 Tải PDF Báo Cáo",
+            data=create_pdf_buffer(filtered_df),
+            file_name="Bao_Cao_TCC1.pdf",
             mime="application/pdf",
             on_click=show_success_toast,
             use_container_width=True
