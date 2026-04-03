@@ -18,7 +18,7 @@ color_map = {
 } 
 
 st.set_page_config(
-    page_title="Edu-Analytics | Phân tích chất lượng học tập môn Toán cao cấp 1", 
+    page_title="Edu-Analytics | Phân tích chất lượng môn Toán cao cấp 1", 
     page_icon="🎓", 
     layout="wide",
     initial_sidebar_state="expanded" 
@@ -124,7 +124,45 @@ if filtered_df.empty:
 # ---------------------------------
 # ===== TITLE =====
 st.title("📊PHÂN TÍCH CHẤT LƯỢNG HỌC TẬP MÔN TOÁN CAO CẤP 1 (D05, D12, D13, D14)")
+# ===== THÔNG TIN HỌC PHẦN =====
+# 1. Khai báo từ điển lưu trữ thông tin thi của từng lớp
+course_info = {
+    "D05": {"Mã học phần": "AMA301_2511_1_D05", "Ngày, giờ thi": "24/01/2026, 13h00"},
+    "D12": {"Mã học phần": "AMA301_2511_1_D12", "Ngày, giờ thi": "25/01/2026, 07h00"},
+    "D13": {"Mã học phần": "AMA301_2511_1_D13", "Ngày, giờ thi": "25/01/2026, 07h00"},
+    "D14": {"Mã học phần": "AMA301_2511_1_D14", "Ngày, giờ thi": "25/01/2026, 08h30"}
+}
 
+# 2. Xử lý logic hiển thị dựa trên bộ lọc Sidebar
+if len(selected_class) == 1:
+    # Nếu người dùng chỉ chọn ĐÚNG 1 lớp
+    lop_duy_nhat = selected_class[0]
+    ma_hp_hien_thi = course_info[lop_duy_nhat]["Mã học phần"]
+    ngay_thi_hien_thi = course_info[lop_duy_nhat]["Ngày, giờ thi"]
+else:
+    # Nếu người dùng chọn từ 2 lớp trở lên, hoặc chọn "Tất cả"
+    ma_hp_hien_thi = "AMA301_2511_1"
+    ngay_thi_hien_thi = "Nhiều ca thi (Vui lòng chọn 1 lớp cụ thể)"
+
+# 3. Hiển thị lên giao diện (Dùng container và chia cột cho đẹp)
+with st.container():
+    st.markdown("### 📝 Thông tin lớp học phần")
+    col_info1, col_info2, col_info3 = st.columns(3)
+    
+    with col_info1:
+        st.write("**Hệ:** Chính quy")
+        st.write("**Môn học:** Toán cao cấp 1")
+        
+    with col_info2:
+        st.write("**Năm học:** 2025-2026")
+        st.write("**Học kỳ:** HK01")
+        
+    with col_info3:
+        st.write(f"**Mã học phần:** {ma_hp_hien_thi}")
+        st.write(f"**Ngày, giờ thi:** {ngay_thi_hien_thi}")
+        
+st.markdown("---") # Đường kẻ ngang phân cách trước khi vào các Tabs
+# --------------------------------
 # 🌟 TÍNH NĂNG 1: TẠO 3 TABS PHÂN TRANG (st.tabs)
 tab1, tab2, tab3 = st.tabs(["📊 Tổng quan lớp", "🔍 Phân tích chuyên sâu", "🧑‍🎓 Tra cứu cá nhân (Radar)"])
 
