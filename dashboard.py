@@ -440,10 +440,21 @@ with tab3:
             # Tiêu đề cột
             table_data = [["STT", "MSSV", "Họ và Tên", "Lớp", "Điểm TK", "Xếp loại"]]
             
-            # Rút trích dữ liệu sinh viên
-            for index, row in enumerate(df_export.itertuples(), 1):
-                hoten = f"{row.Họ} {row.Tên}"
-                table_data.append([str(index), str(row.MSSV), hoten, str(row.Lớp), str(row.Điểm_tổng_hợp), str(getattr(row, 'Xếp loại'))])
+            # Rút trích dữ liệu sinh viên (Đã dùng iterrows để chống lỗi khoảng trắng)
+            for index, (_, row) in enumerate(df_export.iterrows(), 1):
+                # Xử lý an toàn nếu có sinh viên bị thiếu Họ hoặc Tên
+                ho = str(row['Họ']) if not pd.isna(row['Họ']) else ""
+                ten = str(row['Tên']) if not pd.isna(row['Tên']) else ""
+                hoten = f"{ho} {ten}".strip()
+                
+                table_data.append([
+                    str(index), 
+                    str(row['MSSV']), 
+                    hoten, 
+                    str(row['Lớp']), 
+                    str(row['Điểm_tổng_hợp']), 
+                    str(row['Xếp loại'])
+                ])
 
             # Cấu hình vẽ bảng
             student_table = Table(table_data, colWidths=[40, 80, 150, 60, 60, 130], repeatRows=1) # repeatRows giúp lặp lại tiêu đề khi sang trang mới
