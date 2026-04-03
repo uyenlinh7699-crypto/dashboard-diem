@@ -103,219 +103,207 @@ if selected_type_sidebar != "Tất cả":
     filtered_df = filtered_df[filtered_df["Xếp loại"] == selected_type_sidebar]
 
 # ===== TITLE =====
-st.title("📊 PHÂN TÍCH ĐIỂM SINH VIÊN (D05, D12, D13, D14)")
+st.title("📊 DASHBOARD PHÂN TÍCH HỌC THUẬT (D05, D12, D13, D14)")
 
-# ===== KPI =====
-st.subheader("📌 Tổng quan")
-col1, col2, col3, col4 = st.columns(4)
-mean10 = filtered_df["Điểm_tổng_hợp"].mean()
-mean4 = filtered_df["Điểm_4"].mean()
-col1.metric("Điểm TB (hệ 10)", round(mean10, 1) if not pd.isna(mean10) else 0)
-col2.metric("Điểm TB (hệ 4)", round(mean4, 1) if not pd.isna(mean4) else 0)
-max_score = filtered_df["Điểm_tổng_hợp"].max()
-col3.metric("Cao nhất", max_score if not pd.isna(max_score) else 0)
-col4.metric("Tổng SV", filtered_df.shape[0])
+# 🌟 TÍNH NĂNG 1: TẠO 3 TABS PHÂN TRANG (st.tabs)
+tab1, tab2, tab3 = st.tabs(["📊 Tổng quan lớp", "🔍 Phân tích chuyên sâu", "🧑‍🎓 Tra cứu cá nhân (Radar)"])
 
-# ===== RANKING (Đã chuyển sang Plotly chuẩn) =====
-st.subheader("🏆 Xếp hạng lớp")
-avg_class = filtered_df.groupby("Lớp")["Điểm_tổng_hợp"].mean().reset_index()
-avg_class = avg_class.sort_values(by="Điểm_tổng_hợp", ascending=False)
+# ==========================================
+# TAB 1: TỔNG QUAN
+# ==========================================
+with tab1:
+    st.subheader("📌 Tổng quan KPI")
+    col1, col2, col3, col4 = st.columns(4)
+    mean10 = filtered_df["Điểm_tổng_hợp"].mean()
+    mean4 = filtered_df["Điểm_4"].mean()
+    col1.metric("Điểm TB (hệ 10)", round(mean10, 1) if not pd.isna(mean10) else 0)
+    col2.metric("Điểm TB (hệ 4)", round(mean4, 1) if not pd.isna(mean4) else 0)
+    max_score = filtered_df["Điểm_tổng_hợp"].max()
+    col3.metric("Cao nhất", max_score if not pd.isna(max_score) else 0)
+    col4.metric("Tổng SV", filtered_df.shape[0])
 
-fig_rank = px.bar(
-    avg_class, 
-    x="Lớp", 
-    y="Điểm_tổng_hợp",
-    color="Lớp",
-    color_discrete_map=color_map,
-    text_auto='.2f', 
-    title="Xếp hạng Điểm trung bình theo lớp"
-)
-fig_rank.update_traces(marker_line_color='black', marker_line_width=1.2)
-st.plotly_chart(fig_rank, use_container_width=True)
+    st.markdown("---")
+    
+    colA, colB = st.columns(2)
+    with colA:
+        st.subheader("🏆 Xếp hạng lớp")
+        avg_class = filtered_df.groupby("Lớp")["Điểm_tổng_hợp"].mean().reset_index()
+        avg_class = avg_class.sort_values(by="Điểm_tổng_hợp", ascending=False)
+        fig_rank = px.bar(
+            avg_class, x="Lớp", y="Điểm_tổng_hợp", color="Lớp",
+            color_discrete_map=color_map, text_auto='.2f'
+        )
+        fig_rank.update_traces(marker_line_color='black', marker_line_width=1.2)
+        st.plotly_chart(fig_rank, use_container_width=True)
 
-# ===== HISTOGRAM (Đã chuyển sang Plotly chuẩn) =====
-st.subheader("📈 Phân bố điểm")
+    with colB:
+        st.subheader("📊 Phân loại sinh viên")
+        crosstab_df = pd.crosstab(filtered_df["Lớp"], filtered_df["Xếp loại"]).reset_index()
+        order = ["Lớp", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
+        crosstab_df = crosstab_df[[col for col in order if col in crosstab_df.columns]]
+        melted_df = crosstab_df.melt(id_vars="Lớp", var_name="Xếp loại", value_name="Số lượng")
+        fig_class = px.bar(
+            melted_df, x="Lớp", y="Số lượng", color="Xếp loại",
+            barmode="group", text_auto=True,
+            color_discrete_sequence=px.colors.qualitative.Set2 
+        )
+        fig_class.update_traces(marker_line_color='black', marker_line_width=1)
+        st.plotly_chart(fig_class, use_container_width=True)
 
-fig_hist = px.histogram(
-    filtered_df, 
-    x="Điểm_tổng_hợp", 
-    color="Lớp",
-    color_discrete_map=color_map,
-    nbins=20,
-    barmode="overlay",
-    opacity=0.7,
-    title="Phân bố điểm tổng hợp theo lớp"
-)
-fig_hist.update_traces(marker_line_color='black', marker_line_width=1)
-st.plotly_chart(fig_hist, use_container_width=True)
+    st.markdown("---")
+
+    colC, colD = st.columns(2)
+    with colC:
+        st.subheader("📈 Phân bố điểm (Histogram)")
+        fig_hist = px.histogram(
+            filtered_df, x="Điểm_tổng_hợp", color="Lớp",
+            color_discrete_map=color_map, nbins=20, barmode="overlay", opacity=0.7
+        )
+        fig_hist.update_traces(marker_line_color='black', marker_line_width=1)
+        st.plotly_chart(fig_hist, use_container_width=True)
+
+    with colD:
+        st.subheader("📦 Khoảng phân tán (Boxplot)")
+        fig_box = px.box(
+            filtered_df, x="Lớp", y="Điểm_tổng_hợp", color="Lớp",
+            color_discrete_map=color_map, points=False
+        )
+        fig_box.update_traces(marker_line_color='black', marker_line_width=1)
+        st.plotly_chart(fig_box, use_container_width=True)
 
 
-# ===== BOXPLOT (Đã chuyển sang Plotly chuẩn) =====
-st.subheader("📦 Boxplot")
+# ==========================================
+# TAB 2: PHÂN TÍCH CHUYÊN SÂU
+# ==========================================
+with tab2:
+    col_left, col_right = st.columns(2)
+    
+    with col_left:
+        st.subheader("🔍 Phân tích Tương quan")
+        corr_options = {
+            "Điểm thi cuối kì": "Thi_cuối_kì",
+            "Điểm kiểm tra GK (20%)": "Kiểm_tra_GK",
+            "Điểm Thảo luận, BTN, TT (20%)": "Thảo_luận_BTN_TT",
+            "Điểm chuyên cần (10%)": "Chuyên_cần"
+        }
+        selected_corr_name = st.selectbox("Chọn thành phần điểm để đối chiếu với Điểm tổng hợp:", options=list(corr_options.keys()))
+        x_col = corr_options[selected_corr_name]
 
-fig_box = px.box(
-    filtered_df, 
-    x="Lớp", 
-    y="Điểm_tổng_hợp", 
-    color="Lớp",
-    color_discrete_map=color_map,
-    points=False, # <--- Tắt hoàn toàn các chấm tròn
-    title="Biểu đồ Boxplot: Khoảng phân tán điểm"
-)
-fig_box.update_traces(marker_line_color='black', marker_line_width=1)
-st.plotly_chart(fig_box, use_container_width=True)
+        fig3, ax3 = plt.subplots(figsize=(6, 5))
+        scatter_df = filtered_df.dropna(subset=[x_col, "Điểm_tổng_hợp"])
+        sns.scatterplot(data=scatter_df, x=x_col, y="Điểm_tổng_hợp", hue="Lớp", palette=color_map, alpha=0.6, edgecolor="black", ax=ax3)
+        sns.regplot(data=scatter_df, x=x_col, y="Điểm_tổng_hợp", scatter=False, color="black", ax=ax3)
+
+        ax3.set_title(f"Tương quan: {selected_corr_name}", fontweight='bold')
+        ax3.set_xlabel(selected_corr_name)
+        ax3.set_ylabel("Điểm tổng hợp")
+        ax3.grid(True, linestyle='--', alpha=0.5)
+        for spine in ax3.spines.values(): spine.set_edgecolor('black')
+        st.pyplot(fig3)
+
+    with col_right:
+        st.subheader("📊 Ma trận tương quan (Heatmap)")
+        corr_df = filtered_df[["Chuyên_cần", "Kiểm_tra_GK", "Thảo_luận_BTN_TT", "Thi_cuối_kì", "Điểm_tổng_hợp"]].dropna()
+        corr = corr_df.corr()
+        fig4, ax4 = plt.subplots(figsize=(6, 5))
+        sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax4, linewidths=0.5, linecolor='black') 
+        plt.xticks(rotation=45, ha='right') 
+        st.pyplot(fig4)
 
 
-# ===== SCATTER (Giữ nguyên Matplotlib/Seaborn vì vẽ đường hồi quy rất tốt) =====
-st.subheader("🔍 Tương quan")
+# ==========================================
+# TAB 3: TRA CỨU CÁ NHÂN (Vũ khí bí mật)
+# ==========================================
+with tab3:
+    st.subheader("🎯 Tra cứu & Đánh giá năng lực cá nhân (Radar Chart)")
+    
+    # Tạo cột Tên hiển thị (MSSV - Họ Tên)
+    filtered_df["Tên_Hiển_Thị"] = filtered_df["MSSV"].astype(str) + " - " + filtered_df["Họ"].fillna("") + " " + filtered_df["Tên"].fillna("")
+    
+    # Hộp thoại chọn Sinh viên
+    selected_student = st.selectbox("🔍 Nhập MSSV hoặc Tên sinh viên để phân tích:", filtered_df["Tên_Hiển_Thị"].unique())
+    
+    if selected_student:
+        # Lấy dữ liệu của sinh viên được chọn
+        student_data = filtered_df[filtered_df["Tên_Hiển_Thị"] == selected_student].iloc[0]
+        
+        col_radar, col_info = st.columns([2, 1])
+        
+        with col_radar:
+            # 🌟 TÍNH NĂNG 2: VẼ RADAR CHART
+            categories = ['Chuyên cần', 'Kiểm tra GK', 'Thảo luận & Bài tập', 'Thi cuối kì']
+            
+            # Điểm của sinh viên (Thêm phần tử đầu tiên vào cuối để tạo thành vòng khép kín)
+            student_scores = [student_data['Chuyên_cần'], student_data['Kiểm_tra_GK'], student_data['Thảo_luận_BTN_TT'], student_data['Thi_cuối_kì']]
+            student_scores += [student_scores[0]] 
+            
+            # Điểm trung bình của lớp làm hệ quy chiếu
+            class_avg = [filtered_df['Chuyên_cần'].mean(), filtered_df['Kiểm_tra_GK'].mean(), filtered_df['Thảo_luận_BTN_TT'].mean(), filtered_df['Thi_cuối_kì'].mean()]
+            class_avg += [class_avg[0]]
+            
+            # Đóng danh mục categories
+            categories += [categories[0]]
 
-# 1. Tạo từ điển ánh xạ tên hiển thị đẹp sang tên cột trong dataframe
-corr_options = {
-    "Điểm thi cuối kì": "Thi_cuối_kì",
-    "Điểm kiểm tra GK (20%)": "Kiểm_tra_GK",
-    "Điểm Thảo luận, BTN, TT (20%)": "Thảo_luận_BTN_TT",
-    "Điểm chuyên cần (10%)": "Chuyên_cần" # Mình bonus thêm luôn cột chuyên cần cho đầy đủ nhé
-}
+            fig_radar = go.Figure()
+            # Vẽ vùng điểm của sinh viên
+            fig_radar.add_trace(go.Scatterpolar(
+                r=student_scores, theta=categories, fill='toself',
+                name=f'SV: {student_data["Tên"]}', line_color='#F5793A'
+            ))
+            # Vẽ vùng điểm trung bình lớp
+            fig_radar.add_trace(go.Scatterpolar(
+                r=class_avg, theta=categories, fill='toself',
+                name='Trung bình toàn lớp', line_color='#85C0F9', opacity=0.7
+            ))
 
-# 2. Tạo Selectbox để chọn thành phần điểm làm trục X
-selected_corr_name = st.selectbox(
-    "Chọn thành phần điểm để phân tích tương quan:",
-    options=list(corr_options.keys())
-)
+            fig_radar.update_layout(
+                polar=dict(radialaxis=dict(visible=True, range=[0, 10])),
+                showlegend=True,
+                title=f"Bản đồ Năng lực: {student_data['Họ']} {student_data['Tên']}"
+            )
+            st.plotly_chart(fig_radar, use_container_width=True)
 
-# Lấy tên cột tương ứng với lựa chọn
-x_col = corr_options[selected_corr_name]
+        with col_info:
+            st.info(f"**Lớp:** {student_data['Lớp']}")
+            st.success(f"**Điểm hệ 10:** {student_data['Điểm_tổng_hợp']} \n\n **Điểm hệ 4:** {student_data['Điểm_4']}")
+            st.warning(f"**Xếp loại:** {student_data['Xếp loại']}")
+            
+            # Nhận xét tự động từ AI (Dựa trên Radar)
+            st.write("📝 **Chẩn đoán nhanh:**")
+            if student_data['Thi_cuối_kì'] < class_avg[3]:
+                st.error("Cảnh báo: Điểm thi cuối kì thấp hơn mặt bằng chung. Cần chú trọng ôn tập lý thuyết/thực hành chuyên sâu.")
+            elif student_data['Chuyên_cần'] < 7:
+                st.error("Cảnh báo: Tỷ lệ vắng mặt cao, nguy cơ ảnh hưởng thái độ học tập.")
+            else:
+                st.success("Phong độ học tập ổn định, bám sát hoặc vượt mức trung bình của lớp.")
 
-# 3. Vẽ biểu đồ động theo trục X đã chọn
-fig3, ax3 = plt.subplots()
+    st.markdown("---")
+    
+    # ===== BẢNG CHI TIẾT & XUẤT PDF =====
+    st.subheader("📋 Bảng điểm chi tiết & Xuất File")
+    
+    col_filter, col_pdf = st.columns([3, 1])
+    with col_filter:
+        selected_type = st.selectbox("Lọc danh sách theo Xếp loại:", ["Tất cả", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"], key="filter_main")
+        display_df = filtered_df if selected_type == "Tất cả" else filtered_df[filtered_df["Xếp loại"] == selected_type]
+    
+    st.dataframe(display_df[["MSSV", "Họ", "Tên", "Lớp", "Chuyên_cần", "Kiểm_tra_GK", "Thảo_luận_BTN_TT", "Thi_cuối_kì", "Điểm_tổng_hợp", "Xếp loại"]])
 
-# Chỉ lọc bỏ các hàng bị thiếu (NaN) ở cột được chọn và cột Tổng hợp
-scatter_df = filtered_df.dropna(subset=[x_col, "Điểm_tổng_hợp"])
+    with col_pdf:
+        st.write("") # Dóng hàng
+        st.write("")
+        def create_pdf():
+            pdfmetrics.registerFont(TTFont('DejaVu', 'DejaVuSans.ttf'))
+            doc = SimpleDocTemplate("report.pdf")
+            styles = getSampleStyleSheet()
+            styles["Normal"].fontName = "DejaVu"
+            styles["Title"].fontName = "DejaVu"
+            content = [Paragraph("BÁO CÁO PHÂN TÍCH ĐIỂM", styles["Title"]), Spacer(1, 20)]
+            mean_val = round(filtered_df["Điểm_tổng_hợp"].mean(), 2)
+            content.append(Paragraph(f"Điểm trung bình: {mean_val}", styles["Normal"]))
+            content.append(Paragraph(f"Tổng sinh viên: {df_raw.shape[0]}", styles["Normal"]))
+            doc.build(content)
 
-sns.scatterplot(
-    data=scatter_df,
-    x=x_col,
-    y="Điểm_tổng_hợp",
-    hue="Lớp",
-    palette=color_map,
-    alpha=0.6,
-    edgecolor="black",
-    ax=ax3
-)
-sns.regplot(
-    data=scatter_df, 
-    x=x_col, 
-    y="Điểm_tổng_hợp", 
-    scatter=False, 
-    color="black", 
-    ax=ax3
-)
-
-# Cập nhật tiêu đề và tên trục tự động theo tên lựa chọn
-ax3.set_title(f"Tương quan giữa {selected_corr_name} và Điểm tổng hợp", fontsize=14, fontweight='bold', pad=15)
-ax3.set_xlabel(selected_corr_name, fontweight='bold')
-ax3.set_ylabel("Điểm tổng hợp", fontweight='bold')
-ax3.legend(title="Lớp", frameon=True, edgecolor='black')
-ax3.grid(True, linestyle='--', alpha=0.5)
-for spine in ax3.spines.values():
-    spine.set_edgecolor('black')
-    spine.set_linewidth(1)
-
-st.pyplot(fig3)
-
-# ===== HEATMAP (Giữ nguyên Matplotlib/Seaborn) =====
-st.subheader("📊 Heatmap")
-
-corr_df = filtered_df[[
-    "Chuyên_cần",
-    "Kiểm_tra_GK",
-    "Thảo_luận_BTN_TT",
-    "Thi_cuối_kì",
-    "Điểm_tổng_hợp"
-]].dropna()
-
-corr = corr_df.corr()
-
-fig4, ax4 = plt.subplots()
-sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax4, linewidths=0.5, linecolor='black') 
-
-ax4.set_title("Ma trận tương quan giữa các thành phần điểm", fontsize=14, fontweight='bold', pad=15)
-plt.xticks(rotation=45, ha='right') 
-
-st.pyplot(fig4)
-
-# ===== PHÂN LOẠI (Đã dọn dẹp lỗi và chuyển sang Plotly chuẩn) =====
-st.subheader("📊 Phân loại sinh viên")
-
-crosstab_df = pd.crosstab(filtered_df["Lớp"], filtered_df["Xếp loại"]).reset_index()
-order = ["Lớp", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
-crosstab_df = crosstab_df[[col for col in order if col in crosstab_df.columns]]
-
-melted_df = crosstab_df.melt(id_vars="Lớp", var_name="Xếp loại", value_name="Số lượng")
-
-fig_class = px.bar(
-    melted_df, 
-    x="Lớp", 
-    y="Số lượng", 
-    color="Xếp loại",
-    barmode="group", 
-    text_auto=True,
-    title="Thống kê Xếp loại sinh viên theo lớp",
-    color_discrete_sequence=px.colors.qualitative.Set2 
-)
-fig_class.update_traces(marker_line_color='black', marker_line_width=1)
-st.plotly_chart(fig_class, use_container_width=True)
-
-# ===== TOP =====
-st.subheader("🏆 Top sinh viên")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.write("Top 5 cao nhất")
-    st.dataframe(filtered_df.sort_values(by="Điểm_tổng_hợp", ascending=False).head(5))
-
-with col2:
-    st.write("Top 5 thấp nhất")
-    st.dataframe(filtered_df.sort_values(by="Điểm_tổng_hợp", ascending=True).head(5))
-
-# ===== BẢNG CHI TIẾT =====
-st.subheader("📋 Danh sách sinh viên")
-
-selected_type = st.selectbox(
-    "Chọn xếp loại",
-    ["Tất cả", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"],
-    key="filter_main"
-)
-
-if selected_type == "Tất cả":
-    display_df = filtered_df
-else:
-    display_df = filtered_df[filtered_df["Xếp loại"] == selected_type]
-
-st.dataframe(display_df)
-
-# ===== PDF =====
-st.subheader("📤 Xuất PDF")
-
-def create_pdf():
-    pdfmetrics.registerFont(TTFont('DejaVu', 'DejaVuSans.ttf'))
-    doc = SimpleDocTemplate("report.pdf")
-    styles = getSampleStyleSheet()
-
-    styles["Normal"].fontName = "DejaVu"
-    styles["Title"].fontName = "DejaVu"
-
-    content = []
-    content.append(Paragraph("BÁO CÁO PHÂN TÍCH ĐIỂM", styles["Title"]))
-    content.append(Spacer(1, 20))
-
-    mean = round(filtered_df["Điểm_tổng_hợp"].mean(), 2)
-    content.append(Paragraph(f"Điểm trung bình: {mean}", styles["Normal"]))
-    content.append(Paragraph(f"Tổng sinh viên: {df_raw.shape[0]}", styles["Normal"]))
-
-    doc.build(content)
-
-if st.button("Tạo PDF"):
-    create_pdf()
-    st.success("Đã tạo PDF")
+        if st.button("📥 Tải PDF Báo Cáo", use_container_width=True):
+            create_pdf()
+            st.success("Đã tạo report.pdf thành công!")
