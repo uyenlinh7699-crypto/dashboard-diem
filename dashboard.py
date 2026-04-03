@@ -169,11 +169,32 @@ st.plotly_chart(fig_box, use_container_width=True)
 # ===== SCATTER (Giữ nguyên Matplotlib/Seaborn vì vẽ đường hồi quy rất tốt) =====
 st.subheader("🔍 Tương quan")
 
+# 1. Tạo từ điển ánh xạ tên hiển thị đẹp sang tên cột trong dataframe
+corr_options = {
+    "Điểm thi cuối kì": "Thi_cuối_kì",
+    "Điểm kiểm tra GK (20%)": "Kiểm_tra_GK",
+    "Điểm Thảo luận, BTN, TT (20%)": "Thảo_luận_BTN_TT",
+    "Điểm chuyên cần (10%)": "Chuyên_cần" # Mình bonus thêm luôn cột chuyên cần cho đầy đủ nhé
+}
+
+# 2. Tạo Selectbox để chọn thành phần điểm làm trục X
+selected_corr_name = st.selectbox(
+    "Chọn thành phần điểm để phân tích tương quan:",
+    options=list(corr_options.keys())
+)
+
+# Lấy tên cột tương ứng với lựa chọn
+x_col = corr_options[selected_corr_name]
+
+# 3. Vẽ biểu đồ động theo trục X đã chọn
 fig3, ax3 = plt.subplots()
-scatter_df = filtered_df.dropna(subset=["Thi_cuối_kì", "Điểm_tổng_hợp"])
+
+# Chỉ lọc bỏ các hàng bị thiếu (NaN) ở cột được chọn và cột Tổng hợp
+scatter_df = filtered_df.dropna(subset=[x_col, "Điểm_tổng_hợp"])
+
 sns.scatterplot(
     data=scatter_df,
-    x="Thi_cuối_kì",
+    x=x_col,
     y="Điểm_tổng_hợp",
     hue="Lớp",
     palette=color_map,
@@ -182,10 +203,17 @@ sns.scatterplot(
     ax=ax3
 )
 sns.regplot(
-    data=scatter_df, x="Thi_cuối_kì", y="Điểm_tổng_hợp", scatter=False, color="black", ax=ax3)
+    data=scatter_df, 
+    x=x_col, 
+    y="Điểm_tổng_hợp", 
+    scatter=False, 
+    color="black", 
+    ax=ax3
+)
 
-ax3.set_title("Tương quan giữa Điểm thi cuối kì và Điểm tổng hợp", fontsize=14, fontweight='bold', pad=15)
-ax3.set_xlabel("Điểm thi cuối kì", fontweight='bold')
+# Cập nhật tiêu đề và tên trục tự động theo tên lựa chọn
+ax3.set_title(f"Tương quan giữa {selected_corr_name} và Điểm tổng hợp", fontsize=14, fontweight='bold', pad=15)
+ax3.set_xlabel(selected_corr_name, fontweight='bold')
 ax3.set_ylabel("Điểm tổng hợp", fontweight='bold')
 ax3.legend(title="Lớp", frameon=True, edgecolor='black')
 ax3.grid(True, linestyle='--', alpha=0.5)
