@@ -123,7 +123,7 @@ if filtered_df.empty:
     st.stop() # Lệnh này sẽ dừng vẽ các biểu đồ bên dưới để tránh lỗi
 # ---------------------------------
 # ===== TITLE =====
-st.title("📊 DASHBOARD PHÂN TÍCH CHẤT LƯỢNG HỌC TẬP MÔN TOÁN CAO CẤP 1 (D05, D12, D13, D14)")
+st.title("📊PHÂN TÍCH CHẤT LƯỢNG HỌC TẬP MÔN TOÁN CAO CẤP 1 (D05, D12, D13, D14)")
 
 # 🌟 TÍNH NĂNG 1: TẠO 3 TABS PHÂN TRANG (st.tabs)
 tab1, tab2, tab3 = st.tabs(["📊 Tổng quan lớp", "🔍 Phân tích chuyên sâu", "🧑‍🎓 Tra cứu cá nhân (Radar)"])
