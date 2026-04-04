@@ -171,7 +171,7 @@ tab1, tab2, tab3 = st.tabs(["📊 Tổng quan lớp", "🔍 Phân tích chuyên 
 # TAB 1: TỔNG QUAN
 # ==========================================
 with tab1:
-    st.subheader("📌 Tổng quan KPI")
+    st.subheader("📌 Tổng quan")
     col1, col2, col3, col4 = st.columns(4)
     mean10 = filtered_df["Điểm_tổng_hợp"].mean()
     mean4 = filtered_df["Điểm_4"].mean()
