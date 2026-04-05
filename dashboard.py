@@ -111,7 +111,9 @@ selected_type_sidebar = st.sidebar.selectbox(
     "Chọn xếp loại",
     ["Tất cả", "Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
 ) 
-
+if selected_type_sidebar == "Yếu":
+    st.snow() # Màn hình sẽ đổ tuyết
+    st.toast("🥶 Cảnh báo: Tình hình học tập đang đóng băng!", icon="❄️")
 # 3. Thêm thông báo hướng dẫn UX ở cuối
 st.sidebar.markdown("---")
 st.sidebar.info("💡 **Mẹo:** Dùng bộ lọc để thu hẹp phạm vi phân tích. Các biểu đồ bên phải sẽ tự động cập nhật theo lựa chọn của bạn.")
