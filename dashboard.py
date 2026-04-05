@@ -403,7 +403,7 @@ with tab3:
             st.warning(f"**Xếp loại:** {student_data['Xếp loại']}")
             
             # Nhận xét tự động từ AI (Dựa trên Radar)
-            st.write("📝 **Chẩn đoán nhanh:**")
+            st.write("📝 **Nhận xét:**")
             if student_data['Thi_cuối_kì'] < class_avg[3]:
                 st.error("Cảnh báo: Điểm thi cuối kì thấp hơn mặt bằng chung. Cần chú trọng ôn tập lý thuyết/thực hành chuyên sâu.")
             elif student_data['Chuyên_cần'] < 7:
