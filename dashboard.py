@@ -1,4 +1,5 @@
 import plotly.express as px
+import time
 import io
 import plotly.graph_objects as go
 import streamlit as st
