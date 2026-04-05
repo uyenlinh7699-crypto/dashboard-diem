@@ -163,6 +163,20 @@ with st.container():
         st.write(f"**Ngày, giờ thi:** {ngay_thi_hien_thi}")
         
 st.markdown("---") # Đường kẻ ngang phân cách trước khi vào các Tabs
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 👨‍💻 Đội ngũ thực hiện")
+st.sidebar.info("""
+**Nhóm sinh viên:**
+1. **Phạm Đoàn Yến Nhi**
+2. **Nguyễn Thị Huỳnh Như**
+3. **Đặng Lê Thanh Trúc**
+4. **Nguyễn Thị Hằng Ny**
+5. **Trương Nguyễn Phương Mai**
+6. **Trịnh Yến Vy**
+7. **Trần Thị Bảo Ngân**
+
+*Đề tài: Phân tích dữ liệu điểm Toán cao cấp 1*
 # --------------------------------
 # 🌟 TÍNH NĂNG 1: TẠO 3 TABS PHÂN TRANG (st.tabs)
 tab1, tab2, tab3 = st.tabs(["📊 Tổng quan lớp", "🔍 Phân tích chuyên sâu", "🧑‍🎓 Tra cứu cá nhân (Radar)"])
