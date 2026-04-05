@@ -83,6 +83,10 @@ def classify(score):
 df["Xếp loại"] = df["Điểm_4"].apply(classify)
 
 # ===== SIDEBAR =====
+
+# Chèn Logo trường ở trên cùng
+st.sidebar.image("logo.png", use_container_width=True)
+
 # 1. Thêm Tiêu đề/Logo thương hiệu nổi bật
 st.sidebar.markdown("<h2 style='text-align: center; color: #F5793A;'>🎓 Group 5</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("---") # Đường gạch ngang phân cách
