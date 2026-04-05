@@ -95,9 +95,10 @@ st.sidebar.markdown("---") # Đường gạch ngang phân cách
 st.sidebar.header("🎛️ Bộ lọc dữ liệu")
 
 selected_class = st.sidebar.multiselect(
-    "Chọn lớp",
-    df["Lớp"].unique(),
-    default=df["Lớp"].unique()
+    "Chọn lớp:",
+    options=df["Lớp"].unique(),
+    default=df["Lớp"].unique(),
+    help="Bạn có thể chọn một hoặc nhiều lớp cùng lúc để so sánh dữ liệu."
 )
 
 min_score, max_score = st.sidebar.slider(
@@ -224,6 +225,11 @@ with tab1:
         )
         fig_rank.update_traces(marker_line_color='black', marker_line_width=1.2)
         st.plotly_chart(fig_rank, use_container_width=True)
+        with st.expander("💡 Hướng dẫn đọc biểu đồ Cột"):
+            st.write("""
+            - **Ý nghĩa:** Dùng để so sánh nhanh mặt bằng chung giữa các lớp. 
+            - **Cách đọc:** Cột càng cao thể hiện điểm trung bình lớp càng tốt. Bạn có thể rê chuột vào từng cột để xem điểm số chính xác.
+            """)
 
     with colB:
         st.subheader("📊 Phân loại sinh viên")
@@ -238,6 +244,11 @@ with tab1:
         )
         fig_class.update_traces(marker_line_color='black', marker_line_width=1)
         st.plotly_chart(fig_class, use_container_width=True)
+        with st.expander("💡 Hướng dẫn đọc biểu đồ Phân loại"):
+            st.write("""
+            - **Ý nghĩa:** Trực quan hóa tỷ trọng học lực của từng lớp.
+            - **Cách đọc:** Nhóm cột màu xanh/cam (Xuất sắc, Giỏi) càng cao cho thấy chất lượng đào tạo của lớp đó càng tích cực và sinh viên đáp ứng rất tốt chuẩn đầu ra.
+            """)
 
     st.markdown("---")
 
@@ -250,6 +261,11 @@ with tab1:
         )
         fig_hist.update_traces(marker_line_color='black', marker_line_width=1)
         st.plotly_chart(fig_hist, use_container_width=True)
+        with st.expander("💡 Hướng dẫn đọc Histogram (Phân bố điểm)"):
+            st.write("""
+            - **Đỉnh ngọn núi:** Cho biết mức điểm nào đang có đông sinh viên đạt được nhất.
+            - **Cách đọc:** Nếu hình dáng ngọn núi lệch hẳn về bên phải (phía 8-10 điểm), chứng tỏ đề thi vừa sức và phần đông sinh viên làm bài rất tốt. Ngược lại, nếu lệch trái là dấu hiệu đáng báo động.
+            """)
 
     with colD:
         st.subheader("📦 Khoảng phân tán (Boxplot)")
@@ -259,6 +275,19 @@ with tab1:
         )
         fig_box.update_traces(marker_line_color='black', marker_line_width=1)
         st.plotly_chart(fig_box, use_container_width=True)
+        with st.expander("💡 Hướng dẫn đọc Boxplot (Hộp phân tán)"):
+            st.write("""
+            **1. Hộp màu ở giữa (Đại diện cho "Nhóm cốt lõi"):**
+            Hãy tưởng tượng xếp điểm của cả lớp thành một hàng dọc từ thấp đến cao, sau đó loại bỏ 25% các bạn điểm thấp nhất và 25% các bạn điểm cao nhất. Chiếc hộp này chính là khoảng điểm của **50% sinh viên nằm ở khúc giữa của lớp**. 
+            - Nếu hộp **ngắn**: Nghĩa là nhóm cốt lõi này có điểm rất sát nhau => Lớp học có sức học đồng đều. 
+            - Nếu hộp **dài**: Nghĩa là điểm phân tán rộng => Lớp học có sự chênh lệch lớn.
+
+            **2. Đường gạch ngang bên trong hộp (Điểm Trung vị):**
+            Đây là điểm của sinh viên đứng ngay vị trí chính giữa lớp. Khác với "Điểm trung bình" dễ bị kéo tụt xuống bởi một vài điểm 0, điểm Trung vị phản ánh chính xác nhất "mặt bằng chung" thực tế của đa số sinh viên.
+
+            **3. Hai đường râu kéo dài (Whiskers):**
+            Thể hiện khoảng điểm của các sinh viên còn lại. Nếu đường râu bị kéo tuột xuống tận mức điểm rất thấp (ví dụ lớp D05), đó là tín hiệu cảnh báo có những cá nhân đang bị đuối sức và tụt hậu rất xa so với cả lớp.
+            """)
 
 
 # ==========================================
@@ -289,6 +318,11 @@ with tab2:
         ax3.grid(True, linestyle='--', alpha=0.5)
         for spine in ax3.spines.values(): spine.set_edgecolor('black')
         st.pyplot(fig3)
+        with st.expander("💡 Hướng dẫn đọc biểu đồ Phân tán"):
+            st.write("""
+            - **Dấu chấm:** Mỗi dấu chấm đại diện cho 1 sinh viên.
+            - **Đường xu hướng (đường màu đen):** Cho biết mức độ tỷ lệ thuận. Đường này càng dốc hướng lên trên chứng tỏ điểm thành phần đó có tác động càng lớn đến kết quả Điểm tổng hợp cuối cùng.
+            """)
 
     with col_right:
         st.subheader("📊 Ma trận tương quan (Heatmap)")
@@ -298,6 +332,11 @@ with tab2:
         sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax4, linewidths=0.5, linecolor='black') 
         plt.xticks(rotation=45, ha='right') 
         st.pyplot(fig4)
+        with st.expander("💡 Hướng dẫn đọc Ma trận nhiệt"):
+            st.write("""
+            - **Màu sắc & Con số:** Màu đỏ càng đậm (tiến gần về 1) thì mức độ quyết định càng lớn. Màu xanh nhạt là ít liên quan.
+            - **Cách đọc:** Hãy nhìn vào hàng ngang cuối cùng (Điểm tổng hợp). Ô nào màu đỏ đậm nhất (thường là Thi cuối kì) chính là bài kiểm tra mang tính chất quyết định sống còn đến việc sinh viên qua môn hay rớt môn.
+            """)
 
 
 # ==========================================
@@ -351,6 +390,12 @@ with tab3:
                 title=f"Bản đồ Năng lực: {student_data['Họ']} {student_data['Tên']}"
             )
             st.plotly_chart(fig_radar, use_container_width=True)
+            with st.expander("💡 Hướng dẫn đọc biểu đồ Năng lực cá nhân"):
+                st.write("""
+                - **Lớp màu xanh mờ (Nền):** Thể hiện sức học trung bình của cả lớp, dùng làm hệ quy chiếu.
+                - **Lớp màu cam (Sinh viên):** Thể hiện năng lực thực tế của cá nhân.
+                - **Cách chẩn đoán:** Nếu lớp màu cam căng tròn và đè lên lớp nền xanh, sinh viên học rất tốt và đều. Nếu một góc mạng nhện bị "lõm" sâu vào trong so với vùng xanh, đó chính là lỗ hổng kỹ năng mà sinh viên cần khắc phục.
+                """)
 
         with col_info:
             st.info(f"**Lớp:** {student_data['Lớp']}")
@@ -507,7 +552,7 @@ with tab3:
 
         def show_success_toast():
             st.toast("✅ Đã xuất Bảng Điểm thành công!", icon="🎓")
-
+            st.balloons()
         # Truyền ma_hp_hien_thi và ngay_thi_hien_thi từ logic biến ở bên trên vào hàm
         st.download_button(
             label="📥 Tải PDF Bảng Điểm ",
