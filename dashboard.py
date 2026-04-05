@@ -337,9 +337,10 @@ with tab2:
         st.pyplot(fig4)
         with st.expander("💡 Hướng dẫn đọc Ma trận nhiệt"):
             st.write("""
-            - **Màu sắc & Con số:** Màu đỏ càng đậm (tiến gần về 1) thì mức độ quyết định càng lớn. Màu xanh nhạt là ít liên quan.
-            - **Cách đọc:** Hãy nhìn vào hàng ngang cuối cùng (Điểm tổng hợp). Ô nào màu đỏ đậm nhất (thường là Thi cuối kì) chính là bài kiểm tra mang tính chất quyết định sống còn đến việc sinh viên qua môn hay rớt môn.
-            """)
+            - **Màu đỏ càng đậm (Tiến gần về 1):** Mức độ liên quan càng cao. Ví dụ ô giao điểm giữa 'Thi cuối kì' và 'Điểm tổng hợp' đỏ rực, chứng tỏ bài thi cuối kì mang tính quyết định sống còn đến kết quả.
+            - **Màu xanh càng đậm (Tiến gần về 0):** Mức độ liên quan rất thấp, gần như không tác động đến nhau. Ví dụ điểm 'Chuyên cần' thường có màu xanh đậm khi đối chiếu với các cột khác.
+            - **Màu nhạt (Trắng / Cam / Xanh nhạt):** Thể hiện mức độ tương quan ở ngưỡng trung bình.
+            """)      
 
 
 # ==========================================
