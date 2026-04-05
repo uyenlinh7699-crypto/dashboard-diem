@@ -171,13 +171,22 @@ tab1, tab2, tab3 = st.tabs(["📊 Tổng quan lớp", "🔍 Phân tích chuyên 
 # TAB 1: TỔNG QUAN
 # ==========================================
 with tab1:
-    st.subheader("📌 Tổng quan")
+    st.subheader("📌 Tổng quan KPI")
     col1, col2, col3, col4 = st.columns(4)
+    
+    # 1. Tính toán các chỉ số
     mean10 = filtered_df["Điểm_tổng_hợp"].mean()
-    mean4 = filtered_df["Điểm_4"].mean()
-    col1.metric("Điểm TB (hệ 10)", round(mean10, 1) if not pd.isna(mean10) else 0)
-    col2.metric("Điểm TB (hệ 4)", round(mean4, 1) if not pd.isna(mean4) else 0)
+    
+    # --- ĐOẠN CODE MỚI CỦA BẠN NẰM Ở ĐÂY ---
+    so_sv_qua_mon = filtered_df[filtered_df["Điểm_tổng_hợp"] >= 5.0].shape[0]
+    ty_le_qua = (so_sv_qua_mon / filtered_df.shape[0]) * 100 if filtered_df.shape[0] > 0 else 0
+    # ----------------------------------------
+    
     max_score = filtered_df["Điểm_tổng_hợp"].max()
+    
+    # 2. Hiển thị lên giao diện (Metric)
+    col1.metric("Điểm TB (hệ 10)", round(mean10, 1) if not pd.isna(mean10) else 0)
+    col2.metric("Tỷ lệ qua môn", f"{round(ty_le_qua, 1)}%") # <-- Ô thứ 2 đã chuyển thành Tỷ lệ
     col3.metric("Cao nhất", max_score if not pd.isna(max_score) else 0)
     col4.metric("Tổng SV", filtered_df.shape[0])
 
