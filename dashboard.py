@@ -271,6 +271,7 @@ with tab1:
             color_discrete_map=color_map, nbins=20, barmode="overlay", opacity=0.7
         )
         fig_hist.update_traces(marker_line_color='black', marker_line_width=1)
+        fig_hist.update_layout(yaxis_title="Số lượng sinh viên")
         st.plotly_chart(fig_hist, use_container_width=True)
         with st.expander("💡 Hướng dẫn đọc Histogram (Phân bố điểm)"):
             st.write("""
