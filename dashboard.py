@@ -216,6 +216,31 @@ with tab1:
     col5.metric("Tổng SV", filtered_df.shape[0])
 
     st.markdown("---")
+        st.subheader("👑 Vinh danh Thủ khoa toàn khóa")
+    
+    if st.button("🔍 Khởi động AI quét tìm Thủ khoa..."):
+        # 1. Tạo thanh tiến trình giả lập sự hồi hộp
+        progress_text = "Hệ thống đang quét toàn bộ dữ liệu. Vui lòng chờ..."
+        my_bar = st.progress(0, text=progress_text)
+        
+        for percent_complete in range(100):
+            time.sleep(0.02) # Tốc độ chạy của thanh load
+            my_bar.progress(percent_complete + 1, text=progress_text)
+            
+        time.sleep(0.5)
+        my_bar.empty() # Chạy xong thì ẩn thanh load đi
+        
+        # 2. Bắn bóng bay ăn mừng
+        st.balloons()
+        
+        # 3. Truy xuất sinh viên cao điểm nhất
+        thu_khoa = filtered_df.loc[filtered_df['Điểm_tổng_hợp'].idxmax()]
+        
+        # 4. Hiển thị kết quả hoành tráng
+        st.success("🎉 **ĐÃ TÌM THẤY THỦ KHOA!**")
+        st.info(f"🎓 Sinh viên: **{thu_khoa['Họ']} {thu_khoa['Tên']}** | Lớp: **{thu_khoa['Lớp']}** | Điểm Tổng: **{thu_khoa['Điểm_tổng_hợp']}**")
+
+
 
     colA, colB = st.columns(2)
     with colA:
