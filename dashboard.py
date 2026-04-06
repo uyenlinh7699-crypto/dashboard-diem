@@ -278,6 +278,7 @@ with tab1:
             - **Cách đọc:** Nếu hình dáng ngọn núi lệch hẳn về bên phải (phía 8-10 điểm), chứng tỏ đề thi vừa sức và phần đông sinh viên làm bài rất tốt. Ngược lại, nếu lệch trái là dấu hiệu đáng báo động.
             """)
 
+# === KHU VỰC BOXPLOT CỦA CỘT D ===
     with colD:
         st.subheader("📦 Khoảng phân tán (Boxplot)")
         fig_box = px.box(
@@ -299,8 +300,12 @@ with tab1:
             **3. Hai đường râu kéo dài (Whiskers):**
             Thể hiện khoảng điểm của các sinh viên còn lại. Nếu đường râu bị kéo tuột xuống tận mức điểm rất thấp (ví dụ lớp D05), đó là tín hiệu cảnh báo có những cá nhân đang bị đuối sức và tụt hậu rất xa so với cả lớp.
             """)
-st.markdown("---")
-st.subheader("🎯 Phân tích Điểm phổ biến (Yếu vị - Mode)")
+
+    # === THOÁT KHỎI CỘT D, TRỞ LẠI KHÔNG GIAN CỦA TAB 1 ===
+    # (Đoạn này chỉ thụt lề 1 lần so với lề trái)
+    
+    st.markdown("---")
+    st.subheader("🎯 Phân tích Điểm phổ biến (Yếu vị - Mode)")
     
     # 1. Tạo bộ lọc riêng cho khu vực này
     available_classes = sorted(filtered_df["Lớp"].unique().tolist())
