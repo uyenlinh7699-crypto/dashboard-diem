@@ -94,6 +94,14 @@ with col2:
 
 # 1. Thêm Tiêu đề/Logo thương hiệu nổi bật
 st.sidebar.markdown("<h2 style='text-align: center; color: #F5793A;'>🎓 Group 5</h2>", unsafe_allow_html=True)
+# Chèn thêm thông tin Mã lớp, Năm học và Giảng viên (Căn giữa)
+st.sidebar.markdown("""
+    <div style='text-align: center; font-size: 0.9rem; line-height: 1.6; color: #31333F; margin-bottom: 10px;'>
+        Mã lớp học phần: <b>DAT712_252_L01</b><br>
+        Năm học: <b>2025-2026</b><br>
+        Giảng viên: <b>Nguyễn Hoài Đức</b>
+    </div>
+""", unsafe_allow_html=True)
 st.sidebar.markdown("---") # Đường gạch ngang phân cách
 
 # 2. Khu vực bộ lọc chính
