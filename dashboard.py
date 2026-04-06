@@ -86,7 +86,7 @@ df["Xếp loại"] = df["Điểm_4"].apply(classify)
 # ===== SIDEBAR =====
 
 # Chèn Logo trường ở trên cùng
-st.sidebar.image("logo.png", use_container_width=True)
+st.sidebar.image("logo.png", width=150)
 
 # 1. Thêm Tiêu đề/Logo thương hiệu nổi bật
 st.sidebar.markdown("<h2 style='text-align: center; color: #F5793A;'>🎓 Group 5</h2>", unsafe_allow_html=True)
