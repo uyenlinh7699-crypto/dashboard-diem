@@ -216,7 +216,7 @@ with tab1:
     col5.metric("Tổng SV", filtered_df.shape[0])
 
     st.markdown("---")
-        st.subheader("👑 Vinh danh Thủ khoa toàn khóa")
+    st.subheader("👑 Vinh danh Thủ khoa toàn khóa")
     
     if st.button("🔍 Khởi động AI quét tìm Thủ khoa..."):
         # 1. Tạo thanh tiến trình giả lập sự hồi hộp
