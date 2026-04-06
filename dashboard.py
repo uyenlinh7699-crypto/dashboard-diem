@@ -299,6 +299,40 @@ with tab1:
             **3. Hai đường râu kéo dài (Whiskers):**
             Thể hiện khoảng điểm của các sinh viên còn lại. Nếu đường râu bị kéo tuột xuống tận mức điểm rất thấp (ví dụ lớp D05), đó là tín hiệu cảnh báo có những cá nhân đang bị đuối sức và tụt hậu rất xa so với cả lớp.
             """)
+            st.markdown("---")
+        with st.expander("📊 XEM CHI TIẾT YẾU VỊ (MODE) TOÀN KHÓA & TỪNG LỚP"):
+            # Tạo một biến chuỗi để gom toàn bộ kết quả text
+            mode_text = "[5] YẾU VỊ (MODE) CỦA CÁC CỘT ĐIỂM:\n"
+            cols_to_mode = ["Chuyên_cần", "Kiểm_tra_GK", "Thảo_luận_BTN_TT", "Thi_cuối_kì", "Điểm_tổng_hợp"]
+
+            # --- 5.1 TÍNH MODE CHO TOÀN KHÓA ---
+            mode_text += "\n>>> 5.1 MỨC ĐIỂM PHỔ BIẾN NHẤT CHUNG CẢ KHÓA <<<\n"
+            for col in cols_to_mode:
+                modes_all = df[col].mode().tolist()
+                mode_str_all = ", ".join([str(round(m, 1)) for m in modes_all])
+                if len(modes_all) > 0:
+                    count_all = (df[col] == modes_all[0]).sum()
+                    mode_text += f" - {col.ljust(18)}: {mode_str_all.ljust(8)} (Xuất hiện {count_all} lần)\n"
+                else:
+                    mode_text += f" - {col.ljust(18)}: Không có dữ liệu\n"
+
+            # --- 5.2 TÍNH MODE CHI TIẾT TỪNG LỚP ---
+            mode_text += "\n>>> 5.2 MỨC ĐIỂM PHỔ BIẾN NHẤT THEO TỪNG LỚP <<<\n"
+            for class_name in sorted(df["Lớp"].unique()):
+                mode_text += f"\n--- Lớp: {class_name} ---\n"
+                class_df = df[df["Lớp"] == class_name]
+                
+                for col in cols_to_mode:
+                    modes_class = class_df[col].mode().tolist()
+                    mode_str_class = ", ".join([str(round(m, 1)) for m in modes_class])
+                    if len(modes_class) > 0:
+                        count_class = (class_df[col] == modes_class[0]).sum()
+                        mode_text += f" - {col.ljust(18)}: {mode_str_class.ljust(8)} (Xuất hiện {count_class} lần)\n"
+                    else:
+                        mode_text += f" - {col.ljust(18)}: Không có dữ liệu\n"
+
+            # In đoạn text này ra giao diện web dưới dạng Code block để giữ nguyên format thẳng hàng
+            st.code(mode_text, language="text")
 
 
 # ==========================================
