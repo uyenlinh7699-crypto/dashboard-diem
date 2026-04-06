@@ -196,8 +196,8 @@ tab1, tab2, tab3 = st.tabs(["📊 Tổng quan lớp", "🔍 Phân tích chuyên 
 with tab1:
     st.subheader("📌 Tổng quan")
     
-    # Chia thành 5 cột để chứa đủ 5 chỉ số
-    col1, col2, col3, col4, col5 = st.columns(5)
+    # ---> Chia thành 6 cột <---
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
     
     # 1. Tính toán các chỉ số
     mean10 = filtered_df["Điểm_tổng_hợp"].mean()
@@ -207,15 +207,23 @@ with tab1:
     ty_le_qua = (so_sv_qua_mon / filtered_df.shape[0]) * 100 if filtered_df.shape[0] > 0 else 0
     
     max_score = filtered_df["Điểm_tổng_hợp"].max()
+
+    # ---> TÍNH TOÁN MODE TỰ ĐỘNG THEO BỘ LỌC <---
+    modes_tong_hop = filtered_df["Điểm_tổng_hợp"].mode().tolist()
+    mode_hien_thi = round(modes_tong_hop[0], 1) if len(modes_tong_hop) > 0 else "N/A"
     
-    # 2. Hiển thị lên giao diện 5 ô Metric
+    # 2. Hiển thị lên giao diện 6 ô Metric
     col1.metric("Điểm TB (hệ 10)", round(mean10, 1) if not pd.isna(mean10) else 0)
     col2.metric("Điểm TB (hệ 4)", round(mean4, 1) if not pd.isna(mean4) else 0) 
-    col3.metric("Tỷ lệ qua môn", f"{round(ty_le_qua, 1)}%") 
-    col4.metric("Cao nhất", max_score if not pd.isna(max_score) else 0)
-    col5.metric("Tổng SV", filtered_df.shape[0])
+    col3.metric("Điểm phổ biến", mode_hien_thi)  # <--- Ô METRIC MODE MỚI
+    col4.metric("Tỷ lệ qua môn", f"{round(ty_le_qua, 1)}%") 
+    col5.metric("Cao nhất", max_score if not pd.isna(max_score) else 0)
+    col6.metric("Tổng SV", filtered_df.shape[0])
 
     st.markdown("---")
+
+    colA, colB = st.columns(2)
+    # ... (Phần code biểu đồ rank và phân loại bên dưới bạn giữ nguyên nhé) ...
 
     colA, colB = st.columns(2)
     with colA:
