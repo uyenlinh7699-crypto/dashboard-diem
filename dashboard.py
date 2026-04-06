@@ -300,39 +300,56 @@ with tab1:
             Thể hiện khoảng điểm của các sinh viên còn lại. Nếu đường râu bị kéo tuột xuống tận mức điểm rất thấp (ví dụ lớp D05), đó là tín hiệu cảnh báo có những cá nhân đang bị đuối sức và tụt hậu rất xa so với cả lớp.
             """)
             st.markdown("---")
-        with st.expander("📊 XEM CHI TIẾT YẾU VỊ (MODE) TOÀN KHÓA & TỪNG LỚP"):
-            # Tạo một biến chuỗi để gom toàn bộ kết quả text
-            mode_text = "[5] YẾU VỊ (MODE) CỦA CÁC CỘT ĐIỂM:\n"
-            cols_to_mode = ["Chuyên_cần", "Kiểm_tra_GK", "Thảo_luận_BTN_TT", "Thi_cuối_kì", "Điểm_tổng_hợp"]
+            st.subheader("🎯 Phân tích Điểm phổ biến (Yếu vị - Mode)")
+        
+        # 1. Tạo bộ lọc riêng cho khu vực này
+        available_classes = sorted(filtered_df["Lớp"].unique().tolist())
+        class_options = ["Toàn khóa"] + available_classes
+        
+        selected_mode_class = st.selectbox(
+            "📌 Chọn phạm vi xem Điểm phổ biến:", 
+            options=class_options, 
+            key="mode_filter" # Đặt key để không bị trùng với các bộ lọc khác
+        )
 
-            # --- 5.1 TÍNH MODE CHO TOÀN KHÓA ---
-            mode_text += "\n>>> 5.1 MỨC ĐIỂM PHỔ BIẾN NHẤT CHUNG CẢ KHÓA <<<\n"
-            for col in cols_to_mode:
-                modes_all = df[col].mode().tolist()
-                mode_str_all = ", ".join([str(round(m, 1)) for m in modes_all])
-                if len(modes_all) > 0:
-                    count_all = (df[col] == modes_all[0]).sum()
-                    mode_text += f" - {col.ljust(18)}: {mode_str_all.ljust(8)} (Xuất hiện {count_all} lần)\n"
-                else:
-                    mode_text += f" - {col.ljust(18)}: Không có dữ liệu\n"
+        # 2. Lọc dữ liệu theo lựa chọn ở trên
+        if selected_mode_class == "Toàn khóa":
+            mode_df = filtered_df
+            st.caption(f"Đang hiển thị dữ liệu chung của {mode_df.shape[0]} sinh viên.")
+        else:
+            mode_df = filtered_df[filtered_df["Lớp"] == selected_mode_class]
+            st.caption(f"Đang hiển thị dữ liệu riêng của lớp {selected_mode_class} ({mode_df.shape[0]} sinh viên).")
 
-            # --- 5.2 TÍNH MODE CHI TIẾT TỪNG LỚP ---
-            mode_text += "\n>>> 5.2 MỨC ĐIỂM PHỔ BIẾN NHẤT THEO TỪNG LỚP <<<\n"
-            for class_name in sorted(df["Lớp"].unique()):
-                mode_text += f"\n--- Lớp: {class_name} ---\n"
-                class_df = df[df["Lớp"] == class_name]
+        # 3. Tính toán và hiển thị bằng 5 ô vuông (Metric) siêu to khổng lồ
+        if not mode_df.empty:
+            m_col1, m_col2, m_col3, m_col4, m_col5 = st.columns(5)
+            
+            # Khai báo các cột cần tính và ô tương ứng
+            cols_to_calc = [
+                ("Chuyên_cần", "Điểm Chuyên Cần", m_col1),
+                ("Kiểm_tra_GK", "Điểm Giữa Kì", m_col2),
+                ("Thảo_luận_BTN_TT", "Điểm Thảo Luận", m_col3),
+                ("Thi_cuối_kì", "Thi Cuối Kì", m_col4),
+                ("Điểm_tổng_hợp", "Điểm Tổng Hợp", m_col5)
+            ]
+
+            for col_id, title, ui_col in cols_to_calc:
+                modes = mode_df[col_id].mode().tolist()
                 
-                for col in cols_to_mode:
-                    modes_class = class_df[col].mode().tolist()
-                    mode_str_class = ", ".join([str(round(m, 1)) for m in modes_class])
-                    if len(modes_class) > 0:
-                        count_class = (class_df[col] == modes_class[0]).sum()
-                        mode_text += f" - {col.ljust(18)}: {mode_str_class.ljust(8)} (Xuất hiện {count_class} lần)\n"
-                    else:
-                        mode_text += f" - {col.ljust(18)}: Không có dữ liệu\n"
-
-            # In đoạn text này ra giao diện web dưới dạng Code block để giữ nguyên format thẳng hàng
-            st.code(mode_text, language="text")
+                if len(modes) > 0:
+                    # Ghép các mode lại nếu có nhiều mode (VD: 8.0, 8.5)
+                    mode_str = " & ".join([str(round(m, 1)) for m in modes])
+                    # Đếm số người đạt mức điểm này
+                    count = (mode_df[col_id] == modes[0]).sum()
+                    caption_text = f"👤 {count} SV đạt mức này"
+                else:
+                    mode_str = "N/A"
+                    caption_text = "Không có dữ liệu"
+                
+                # Hiển thị lên UI (dùng delta_color="off" để chữ caption màu xám thay vì xanh/đỏ)
+                ui_col.metric(label=title, value=mode_str, delta=caption_text, delta_color="off")
+        else:
+            st.warning("Không có dữ liệu để tính toán.")
 
 
 # ==========================================
